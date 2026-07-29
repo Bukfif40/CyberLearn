@@ -34,7 +34,12 @@ export const StudyResourceCard: React.FC<Props> = ({ resource }) => {
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={handlePress}
+      accessibilityRole="link"
+      accessibilityLabel={`Open resource: ${resource.title}`}
+    >
       <View style={styles.header}>
         <Text style={styles.icon}>{getResourceIcon(resource.type)}</Text>
         <View style={styles.titleContainer}>

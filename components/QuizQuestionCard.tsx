@@ -70,6 +70,9 @@ export const QuizQuestionCard: React.FC<QuizQuestionCardProps> = ({
             onPress={() => !showResult && onAnswerSelect(index)}
             disabled={showResult}
             activeOpacity={0.7}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selectedAnswer === index }}
+            accessibilityLabel={`Option ${String.fromCharCode(65 + index)}: ${option}`}
           >
             <Text style={styles.optionLetter}>{String.fromCharCode(65 + index)}</Text>
             <Text style={getOptionTextStyle(index)}>{option}</Text>

@@ -38,15 +38,6 @@ export class StorageService {
     }
   }
 
-  static async updateGithubToken(token: string): Promise<void> {
-    try {
-      const preferences = await this.getPreferences();
-      await this.updatePreferences({ ...preferences, ...{ } });
-    } catch (error) {
-      console.error('Error updating GitHub token:', error);
-    }
-  }
-
   // ===== Question Stats (spaced repetition) =====
 
   static async getAllQuestionStats(): Promise<Record<string, QuestionStats>> {

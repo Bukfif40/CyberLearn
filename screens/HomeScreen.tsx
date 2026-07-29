@@ -20,12 +20,21 @@ import { STUDY_RESOURCES } from '../data/studyResources';
 
 interface HomeScreenProps {
   onQuizPress?: () => void;
+  onMistakesPress?: () => void;
+  onFlashcardsPress?: () => void;
+  onExamPress?: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onQuizPress }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({
+  onQuizPress,
+  onMistakesPress,
+  onFlashcardsPress,
+  onExamPress,
+}) => {
   const [gamificationData, setGamificationData] = useState<GamificationData | null>(null);
   const [domainReadiness, setDomainReadiness] = useState<DomainReadinessType[]>([]);
   const [overallReadiness, setOverallReadiness] = useState(0);
+  const [mistakeCount, setMistakeCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,6 +60,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onQuizPress }) => {
 
       const overallScore = await QuizService.getOverallReadiness();
       setOverallReadiness(overallScore);
+
+      const mistakes = await QuizService.getMistakeCount();
+      setMistakeCount(mistakes);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -92,6 +104,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onQuizPress }) => {
           <TouchableOpacity
             style={styles.adaptiveQuizButton}
             onPress={() => onQuizPress && onQuizPress()}
+            accessibilityRole="button"
+            accessibilityLabel="Start adaptive quiz"
           >
             <Text style={styles.adaptiveQuizButtonIcon}>🧠</Text>
             <View style={styles.adaptiveQuizButtonContent}>
@@ -102,6 +116,45 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onQuizPress }) => {
             </View>
             <Text style={styles.adaptiveQuizButtonArrow}>→</Text>
           </TouchableOpacity>
+
+          {/* Study Mode Grid */}
+          <View style={styles.modeGrid}>
+            <TouchableOpacity
+              style={styles.modeCard}
+              onPress={() => onFlashcardsPress && onFlashcardsPress()}
+              accessibilityRole="button"
+              accessibilityLabel="Study flashcards"
+            >
+              <Text style={styles.modeCardIcon}>🗂️</Text>
+              <Text style={styles.modeCardTitle}>Flashcards</Text>
+              <Text style={styles.modeCardSubtitle}>Flip through key concepts</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modeCard}
+              onPress={() => onExamPress && onExamPress()}
+              accessibilityRole="button"
+              accessibilityLabel="Start full-length practice exam"
+            >
+              <Text style={styles.modeCardIcon}>⏱️</Text>
+              <Text style={styles.modeCardTitle}>Practice Exam</Text>
+              <Text style={styles.modeCardSubtitle}>90 questions, timed</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modeCard, mistakeCount === 0 && styles.modeCardDisabled]}
+              onPress={() => onMistakesPress && onMistakesPress()}
+              disabled={mistakeCount === 0}
+              accessibilityRole="button"
+              accessibilityLabel={`Review mistakes, ${mistakeCount} questions to review`}
+            >
+              <Text style={styles.modeCardIcon}>🎯</Text>
+              <Text style={styles.modeCardTitle}>Review Mistakes</Text>
+              <Text style={styles.modeCardSubtitle}>
+                {mistakeCount > 0 ? `${mistakeCount} to review` : 'None yet — nice work!'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Learning Path */}
           {domainReadiness.length > 0 && (
@@ -196,6 +249,40 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#fff',
     marginLeft: 8,
+  },
+  modeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 4,
+  },
+  modeCard: {
+    flexGrow: 1,
+    flexBasis: '30%',
+    minWidth: 100,
+    backgroundColor: '#1a1a2e',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#16213e',
+  },
+  modeCardDisabled: {
+    opacity: 0.5,
+  },
+  modeCardIcon: {
+    fontSize: 22,
+    marginBottom: 6,
+  },
+  modeCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  modeCardSubtitle: {
+    fontSize: 11,
+    color: '#999',
   },
   resourcesSection: {
     paddingHorizontal: 16,

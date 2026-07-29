@@ -73,21 +73,29 @@ export class QuizService {
 
       // Prioritize by review status, then by domain weight
       const result: QuizQuestion[] = [];
+      const usedIds = new Set<string>();
+      const addUnique = (candidates: QuizQuestion[], needed: number) => {
+        for (const q of candidates) {
+          if (needed <= 0) break;
+          if (usedIds.has(q.id)) continue;
+          usedIds.add(q.id);
+          result.push(q);
+          needed -= 1;
+        }
+      };
 
       // 1. Add due-for-review questions first
-      result.push(...this.shuffleArray(dueForReview).slice(0, count));
+      addUnique(this.shuffleArray(dueForReview), count - result.length);
 
-      // 2. Add never-seen questions
+      // 2. Add never-seen questions, weighted toward higher-weight domains
       if (result.length < count) {
-        const neverSeenWeighted = this.weightQuestionsByDomain(neverSeen);
-        result.push(
-          ...this.shuffleArray(neverSeenWeighted).slice(0, count - result.length)
-        );
+        const neverSeenWeighted = this.shuffleArray(this.weightQuestionsByDomain(neverSeen));
+        addUnique(neverSeenWeighted, count - result.length);
       }
 
       // 3. Fill from remaining if needed
       if (result.length < count) {
-        result.push(...this.shuffleArray(other).slice(0, count - result.length));
+        addUnique(this.shuffleArray(other), count - result.length);
       }
 
       return this.shuffleArray(result).slice(0, count);
@@ -139,6 +147,57 @@ export class QuizService {
 
   static getRandomQuestions(count: number = 5): QuizQuestion[] {
     return this.shuffleArray([...QUIZ_QUESTIONS]).slice(0, count);
+  }
+
+  // ===== Full-length Practice Exam =====
+
+  static getPracticeExam(count: number = 90): QuizQuestion[] {
+    const domains = Object.entries(DOMAIN_INFO) as [SecurityDomain, (typeof DOMAIN_INFO)[SecurityDomain]][];
+    const totalWeight = domains.reduce((sum, [, info]) => sum + info.weight, 0);
+
+    const selected: QuizQuestion[] = [];
+    for (const [domain, info] of domains) {
+      const domainQuestions = QUIZ_QUESTIONS.filter(q => q.domain === domain);
+      const target = Math.round((info.weight / totalWeight) * count);
+      selected.push(...this.shuffleArray(domainQuestions).slice(0, Math.min(target, domainQuestions.length)));
+    }
+
+    if (selected.length < count) {
+      const usedIds = new Set(selected.map(q => q.id));
+      const remaining = QUIZ_QUESTIONS.filter(q => !usedIds.has(q.id));
+      selected.push(...this.shuffleArray(remaining).slice(0, count - selected.length));
+    }
+
+    return this.shuffleArray(selected).slice(0, Math.min(count, selected.length));
+  }
+
+  // ===== Review Mistakes =====
+
+  static async getMistakeQuestions(count: number = 10): Promise<QuizQuestion[]> {
+    try {
+      const allStats = await StorageService.getAllQuestionStats();
+      const mistakes = QUIZ_QUESTIONS.filter(q => {
+        const stats = allStats[q.id];
+        return stats && stats.timesIncorrect > 0 && stats.boxLevel <= 2;
+      });
+      return this.shuffleArray(mistakes).slice(0, count);
+    } catch (error) {
+      console.error('Error getting mistake questions:', error);
+      return [];
+    }
+  }
+
+  static async getMistakeCount(): Promise<number> {
+    try {
+      const allStats = await StorageService.getAllQuestionStats();
+      return QUIZ_QUESTIONS.filter(q => {
+        const stats = allStats[q.id];
+        return stats && stats.timesIncorrect > 0 && stats.boxLevel <= 2;
+      }).length;
+    } catch (error) {
+      console.error('Error getting mistake count:', error);
+      return 0;
+    }
   }
 
   // ===== Quiz Results =====

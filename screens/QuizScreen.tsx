@@ -13,9 +13,10 @@ import { QuizQuestion, DOMAIN_INFO, SecurityDomain } from '../types';
 
 interface QuizScreenProps {
   onBack: () => void;
+  mode?: 'adaptive' | 'mistakes';
 }
 
-export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
+export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive' }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -30,7 +31,10 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
   const loadQuestions = async () => {
     try {
       setLoading(true);
-      const loadedQuestions = await QuizService.getAdaptiveQuiz(10);
+      const loadedQuestions =
+        mode === 'mistakes'
+          ? await QuizService.getMistakeQuestions(15)
+          : await QuizService.getAdaptiveQuiz(10);
       setQuestions(loadedQuestions);
       setAnswers(new Array(loadedQuestions.length).fill(null));
       setCurrentQuestionIndex(0);
@@ -50,15 +54,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
   };
 
   const handleNext = async () => {
-    const currentQuestion = questions[currentQuestionIndex];
-    const selectedAnswer = answers[currentQuestionIndex];
-
-    // Record answer immediately (spaced repetition)
-    if (selectedAnswer !== null) {
-      const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
-      await QuizService.recordAnswer(currentQuestion.id, isCorrect);
-    }
-
+    // Spaced-repetition stats are recorded once, in bulk, by saveQuizResult() when the quiz finishes.
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -88,7 +84,12 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={onBack}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Loading Quiz...</Text>
@@ -96,7 +97,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#e94560" />
-          <Text style={styles.loadingText}>Preparing your adaptive quiz...</Text>
+          <Text style={styles.loadingText}>
+            {mode === 'mistakes' ? 'Gathering questions you missed...' : 'Preparing your adaptive quiz...'}
+          </Text>
         </View>
       </View>
     );
@@ -122,7 +125,12 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={onBack}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Results</Text>
@@ -175,8 +183,15 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
           ))}
 
           {/* Retry Button */}
-          <TouchableOpacity style={styles.retryButton} onPress={loadQuestions}>
-            <Text style={styles.retryButtonText}>🚀 New Adaptive Quiz</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={loadQuestions}
+            accessibilityRole="button"
+            accessibilityLabel="Start a new quiz"
+          >
+            <Text style={styles.retryButtonText}>
+              {mode === 'mistakes' ? '🔁 Review More Mistakes' : '🚀 New Adaptive Quiz'}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -187,12 +202,23 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={onBack}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>{mode === 'mistakes' ? 'Review Mistakes' : 'Quiz'}</Text>
+          <View style={{ width: 50 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>No questions available</Text>
+          <Text style={styles.loadingText}>
+            {mode === 'mistakes'
+              ? 'No mistakes to review yet — nice work!'
+              : 'No questions available'}
+          </Text>
         </View>
       </View>
     );
@@ -233,6 +259,8 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
           style={[styles.navButton, currentQuestionIndex === 0 && styles.disabledButton]}
           onPress={handlePrevious}
           disabled={currentQuestionIndex === 0}
+          accessibilityRole="button"
+          accessibilityLabel="Previous question"
         >
           <Text style={styles.navButtonText}>Previous</Text>
         </TouchableOpacity>
@@ -241,6 +269,8 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
           style={[styles.navButton, answers[currentQuestionIndex] === null && styles.disabledButton]}
           onPress={handleNext}
           disabled={answers[currentQuestionIndex] === null}
+          accessibilityRole="button"
+          accessibilityLabel={currentQuestionIndex === questions.length - 1 ? 'Finish quiz' : 'Next question'}
         >
           <Text style={styles.navButtonText}>
             {currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next'}

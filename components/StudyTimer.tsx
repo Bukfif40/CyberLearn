@@ -70,6 +70,8 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ roadmapId = '', onSessio
       <TouchableOpacity
         style={[styles.button, isActive ? styles.stopButton : styles.startButton]}
         onPress={isActive ? handleStop : handleStart}
+        accessibilityRole="button"
+        accessibilityLabel={isActive ? 'Stop study session' : 'Start study session'}
       >
         <Text style={styles.buttonText}>
           {isActive ? '⏹ Stop' : '▶ Start'}

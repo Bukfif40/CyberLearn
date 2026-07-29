@@ -172,6 +172,8 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
                   <TouchableOpacity
                     style={styles.linkButton}
                     onPress={() => handleOpenLink(phase.linkUrl!)}
+                    accessibilityRole="link"
+                    accessibilityLabel={phase.linkLabel}
                   >
                     <Text style={styles.linkButtonText}>{phase.linkLabel} →</Text>
                   </TouchableOpacity>

@@ -885,4 +885,949 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     difficulty: 'medium',
     domain: 'security_program_management',
   },
+
+  // ===== Additional General Security Concepts (12%) =====
+  {
+    id: 'q017',
+    question: 'What is the core principle of a Zero Trust security model?',
+    options: [
+      'Trust all internal network traffic by default',
+      'Never trust, always verify every request regardless of origin',
+      'Trust is granted permanently after the first login',
+      'Only external traffic needs verification',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Zero Trust assumes no implicit trust for any user or device, inside or outside the network, and requires continuous verification of identity and context for every access request.',
+    difficulty: 'medium',
+    domain: 'general_security_concepts',
+  },
+  {
+    id: 'q018',
+    question: 'Why is asymmetric encryption typically used to exchange a symmetric key rather than to encrypt bulk data?',
+    options: [
+      'Asymmetric encryption is faster for large data sets',
+      'Asymmetric encryption is computationally slower, so symmetric keys handle the bulk workload',
+      'Symmetric encryption cannot be automated',
+      'Asymmetric encryption does not support key pairs',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Asymmetric (public-key) encryption is computationally expensive, so it is commonly used only to securely exchange a symmetric session key, which then encrypts the actual bulk data efficiently.',
+    difficulty: 'medium',
+    domain: 'general_security_concepts',
+  },
+  {
+    id: 'q019',
+    question: 'What does the AAA framework in security stand for?',
+    options: [
+      'Authentication, Authorization, Accounting',
+      'Access, Auditing, Availability',
+      'Authentication, Auditing, Accountability',
+      'Assessment, Authorization, Availability',
+    ],
+    correctAnswer: 0,
+    explanation:
+      'AAA stands for Authentication (verifying identity), Authorization (granting permissions), and Accounting (logging and tracking usage/activity).',
+    difficulty: 'easy',
+    domain: 'general_security_concepts',
+  },
+  {
+    id: 'q020',
+    question: 'What is the purpose of a gap analysis in a security program?',
+    options: [
+      'To find gaps in a network cable run',
+      'To compare current security posture against a desired standard or framework to identify deficiencies',
+      'To measure employee attendance',
+      'To calculate the cost of a data breach',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A gap analysis compares an organization\'s current security controls and practices against a target framework or standard, highlighting deficiencies that need remediation.',
+    difficulty: 'medium',
+    domain: 'general_security_concepts',
+  },
+
+  // ===== Additional Threats, Vulnerabilities & Mitigations (22%) =====
+  {
+    id: 'q121',
+    question: 'What is the difference between a threat and a vulnerability?',
+    options: [
+      'They are interchangeable terms',
+      'A threat is a potential danger; a vulnerability is a weakness that a threat can exploit',
+      'A vulnerability is always caused by malware',
+      'A threat only refers to insider risks',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A threat is any potential danger to an asset (e.g., an attacker or natural disaster), while a vulnerability is a weakness that a threat could exploit to cause harm.',
+    difficulty: 'easy',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q122',
+    question: 'What distinguishes spear phishing from generic phishing?',
+    options: [
+      'Spear phishing only targets executives',
+      'Spear phishing is a highly targeted attack customized for a specific individual or group',
+      'Spear phishing never uses email',
+      'Spear phishing is always automated',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Spear phishing is a targeted phishing attack that uses personalized information about a specific victim to increase credibility, unlike generic mass phishing campaigns.',
+    difficulty: 'medium',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q123',
+    question: 'What is a zero-day vulnerability?',
+    options: [
+      'A vulnerability that has existed for zero days',
+      'A previously unknown vulnerability with no available patch at the time of exploitation',
+      'A vulnerability that only affects day-zero installations',
+      'A vulnerability that resets every 24 hours',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A zero-day vulnerability is a flaw unknown to the vendor with no patch available, giving defenders "zero days" to prepare before it can be exploited.',
+    difficulty: 'medium',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q124',
+    question: 'What is the most effective mitigation against SQL injection attacks?',
+    options: [
+      'Disabling the database',
+      'Using parameterized queries (prepared statements) and input validation',
+      'Encrypting the database at rest',
+      'Blocking all traffic on port 443',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Parameterized queries separate SQL code from user-supplied data, preventing attackers from injecting malicious SQL, and should be combined with strict input validation.',
+    difficulty: 'medium',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q125',
+    question: 'What is the primary characteristic of ransomware?',
+    options: [
+      'It slows down network traffic',
+      'It encrypts victim data and demands payment for the decryption key',
+      'It only displays unwanted advertisements',
+      'It replicates itself without any payload',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Ransomware encrypts a victim\'s files or systems and demands a ransom payment, typically in cryptocurrency, in exchange for the decryption key.',
+    difficulty: 'easy',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q126',
+    question: 'What best describes a Business Email Compromise (BEC) attack?',
+    options: [
+      'A virus that infects email servers',
+      'An attacker impersonating an executive or trusted vendor to trick an employee into transferring funds or data',
+      'A denial-of-service attack against an email provider',
+      'Encrypting email attachments for ransom',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'BEC attacks rely on social engineering, often impersonating executives or trusted vendors via email, to convince employees to wire funds or disclose sensitive information.',
+    difficulty: 'medium',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q127',
+    question: 'What is a buffer overflow attack?',
+    options: [
+      'Filling a hard drive until it is full',
+      'Writing more data to a memory buffer than it can hold, potentially allowing arbitrary code execution',
+      'Overloading a network switch with traffic',
+      'Duplicating backup files repeatedly',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A buffer overflow occurs when a program writes more data to a memory buffer than it was allocated, which can corrupt adjacent memory and allow attackers to execute arbitrary code.',
+    difficulty: 'hard',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q128',
+    question: 'What is a supply chain attack?',
+    options: [
+      'An attack that disrupts shipping logistics',
+      'Compromising a trusted third-party vendor or software component to reach the ultimate target',
+      'A denial-of-service attack on retail websites',
+      'Stealing physical inventory from a warehouse',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A supply chain attack targets a trusted vendor, supplier, or software dependency to indirectly compromise the intended target, often bypassing traditional defenses.',
+    difficulty: 'hard',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q129',
+    question: 'What is an Indicator of Compromise (IoC)?',
+    options: [
+      'A performance metric for a firewall',
+      'Forensic evidence such as unusual file hashes, IP addresses, or log entries suggesting a system has been breached',
+      'A certificate revocation notice',
+      'A password complexity requirement',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'An IoC is a piece of forensic data (e.g., malicious file hash, suspicious IP, unusual login pattern) that suggests a system or network may have been compromised.',
+    difficulty: 'medium',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+  {
+    id: 'q130',
+    question: 'What is credential stuffing?',
+    options: [
+      'Manually guessing passwords one character at a time',
+      'Using lists of previously breached username/password pairs to attempt logins across multiple sites',
+      'Storing credentials in plaintext files',
+      'Forcing users to reset passwords frequently',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Credential stuffing uses automated tools to test username/password pairs leaked from other breaches against many sites, exploiting users who reuse passwords.',
+    difficulty: 'medium',
+    domain: 'threats_vulnerabilities_mitigations',
+  },
+
+  // ===== Additional Security Architecture (18%) =====
+  {
+    id: 'q211',
+    question: 'What is the primary purpose of a Demilitarized Zone (DMZ) in network architecture?',
+    options: [
+      'To store encrypted backups',
+      'To host public-facing services in a segmented network isolated from the internal LAN',
+      'To physically separate employees from the internet',
+      'To provide unrestricted access between the internet and internal network',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A DMZ is a segmented network zone that hosts public-facing services (e.g., web servers) so that, if compromised, the attacker still cannot directly reach the internal network.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q212',
+    question: 'In the cloud shared responsibility model, who is typically responsible for securing the physical data center hardware in an IaaS deployment?',
+    options: ['The customer', 'The cloud provider', 'A third-party auditor', 'No one; it is not covered'],
+    correctAnswer: 1,
+    explanation:
+      'In IaaS, the cloud provider is responsible for physical security and the underlying infrastructure, while the customer remains responsible for the OS, applications, and data.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q213',
+    question: 'What is a key security advantage of containerization compared to traditional virtual machines?',
+    options: [
+      'Containers eliminate the need for any isolation',
+      'Containers are lightweight and share the host OS kernel, enabling faster, more consistent deployment',
+      'Containers always run with more privileges than VMs',
+      'Containers cannot be scanned for vulnerabilities',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Containers share the host OS kernel and package only the application and its dependencies, making them lightweight and fast to deploy compared to full virtual machines, though they typically offer weaker isolation.',
+    difficulty: 'hard',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q214',
+    question: 'What is the main difference between an IDS and an IPS?',
+    options: [
+      'An IDS only detects and alerts; an IPS can actively block malicious traffic',
+      'An IDS blocks traffic; an IPS only logs it',
+      'They are identical technologies',
+      'An IPS only works on wireless networks',
+    ],
+    correctAnswer: 0,
+    explanation:
+      'An Intrusion Detection System (IDS) passively monitors and alerts on suspicious traffic, while an Intrusion Prevention System (IPS) sits inline and can actively block or drop malicious traffic.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q215',
+    question: 'What is the purpose of network segmentation?',
+    options: [
+      'To make troubleshooting more difficult',
+      'To divide a network into isolated zones to limit the spread of an attack and control access',
+      'To increase the number of public IP addresses needed',
+      'To eliminate the need for firewalls',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Network segmentation divides a network into smaller isolated zones, limiting lateral movement during a breach and allowing more granular access control between segments.',
+    difficulty: 'easy',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q216',
+    question: 'Why is Telnet considered insecure compared to SSH for remote administration?',
+    options: [
+      'Telnet is slower than SSH',
+      'Telnet transmits credentials and data in plaintext, while SSH encrypts the session',
+      'Telnet requires a VPN',
+      'Telnet only works on Windows systems',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Telnet sends all data, including credentials, in plaintext, making it vulnerable to eavesdropping. SSH encrypts the entire session, protecting confidentiality and integrity.',
+    difficulty: 'easy',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q217',
+    question: 'What is the function of a Certificate Authority (CA) in a PKI?',
+    options: [
+      'To store all private keys for users',
+      'To issue, sign, and manage digital certificates that bind public keys to identities',
+      'To encrypt all network traffic directly',
+      'To act as a firewall for certificate traffic',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A Certificate Authority issues and digitally signs certificates, vouching for the binding between a public key and an identity, forming the trust foundation of a PKI.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q218',
+    question: 'What is the purpose of an air-gapped system?',
+    options: [
+      'To improve wireless signal strength',
+      'To physically isolate a system from unsecured networks, including the internet',
+      'To reduce cooling costs in a data center',
+      'To allow faster patch deployment',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'An air-gapped system is physically isolated from unsecured networks like the internet, providing strong protection for highly sensitive systems at the cost of convenience.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q219',
+    question: 'What is a honeypot used for in security architecture?',
+    options: [
+      'Storing production customer data',
+      'A decoy system designed to attract and analyze attacker behavior away from real assets',
+      'Accelerating network throughput',
+      'Backing up encryption keys',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A honeypot is a decoy system intentionally exposed to attract attackers, allowing defenders to study attack techniques and divert attention from genuine production systems.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q220',
+    question: 'What is a key security concern specific to ICS/SCADA environments?',
+    options: [
+      'They are always air-gapped and require no protection',
+      'Legacy protocols and hardware often lack modern security controls and cannot easily be patched without downtime',
+      'They only run on modern cloud infrastructure',
+      'They have no availability requirements',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Industrial Control Systems (ICS) and SCADA environments frequently run legacy protocols and hardware that lack authentication or encryption, and patching is difficult due to strict uptime requirements.',
+    difficulty: 'hard',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q221',
+    question: 'What does a load balancer primarily provide from a security and availability standpoint?',
+    options: [
+      'Encryption of data at rest',
+      'Distribution of traffic across multiple servers to improve availability and resilience',
+      'Elimination of the need for backups',
+      'Automatic patching of vulnerabilities',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A load balancer distributes incoming traffic across multiple servers, improving availability, performance, and resilience against server failure or traffic spikes.',
+    difficulty: 'easy',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q222',
+    question: 'What is the primary risk of using a self-signed certificate in a production environment?',
+    options: [
+      'It cannot encrypt any traffic',
+      'It is not validated by a trusted third-party CA, so clients cannot verify the identity of the server',
+      'It expires immediately upon creation',
+      'It only works with symmetric encryption',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A self-signed certificate is not vouched for by a trusted CA, so clients have no independent way to verify the server\'s identity, making it vulnerable to impersonation.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q223',
+    question: 'What is the main security challenge posed by many consumer IoT devices?',
+    options: [
+      'They use too much bandwidth',
+      'They often ship with weak default credentials and infrequent firmware updates',
+      'They cannot connect to Wi-Fi',
+      'They require too much physical storage space',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Many IoT devices ship with weak or hardcoded default credentials and receive infrequent security updates, making them attractive targets for botnets and lateral movement.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q224',
+    question: 'What is the purpose of high availability (HA) clustering in system design?',
+    options: [
+      'To reduce the number of servers needed to zero',
+      'To provide automatic failover so services remain available if a component fails',
+      'To increase the attack surface for redundancy testing',
+      'To eliminate the need for monitoring',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'High availability clustering uses redundant systems with automatic failover so that if one node fails, another takes over, minimizing downtime for critical services.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+  {
+    id: 'q225',
+    question: 'What distinguishes a next-generation firewall (NGFW) from a traditional stateful firewall?',
+    options: [
+      'NGFWs only filter by port number',
+      'NGFWs add deep packet inspection, application awareness, and integrated intrusion prevention',
+      'NGFWs cannot be centrally managed',
+      'NGFWs remove the need for any access control lists',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'An NGFW extends traditional stateful inspection with deep packet inspection, application-layer awareness, and integrated intrusion prevention capabilities for more granular control.',
+    difficulty: 'medium',
+    domain: 'security_architecture',
+  },
+
+  // ===== Additional Security Operations (28%) =====
+  {
+    id: 'q311',
+    question: 'What is the correct order of the incident response lifecycle phases?',
+    options: [
+      'Containment, Preparation, Identification, Eradication, Recovery, Lessons Learned',
+      'Preparation, Identification, Containment, Eradication, Recovery, Lessons Learned',
+      'Identification, Preparation, Recovery, Containment, Eradication, Lessons Learned',
+      'Lessons Learned, Preparation, Identification, Containment, Eradication, Recovery',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'The standard incident response lifecycle is Preparation, Identification, Containment, Eradication, Recovery, and Lessons Learned (post-incident review).',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q312',
+    question: 'In digital forensics, what does the "order of volatility" refer to?',
+    options: [
+      'The order in which files were created',
+      'The sequence for collecting evidence, starting with the most easily lost data (e.g., RAM) before less volatile data (e.g., disk)',
+      'The order in which backups should be restored',
+      'The priority order for patching systems',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Order of volatility guides evidence collection to preserve the most fragile data first — such as CPU registers and RAM — before less volatile sources like disk drives and backups.',
+    difficulty: 'hard',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q313',
+    question: 'Why is maintaining a chain of custody important during forensic investigations?',
+    options: [
+      'It speeds up data recovery',
+      'It documents who handled evidence and when, preserving its integrity and admissibility',
+      'It is only required for physical evidence, not digital',
+      'It eliminates the need for hashing evidence',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Chain of custody documents every person who handled evidence and when, ensuring the evidence has not been tampered with and remains admissible in legal proceedings.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q314',
+    question: 'What is the key difference between vulnerability scanning and penetration testing?',
+    options: [
+      'They are the same activity performed at different times',
+      'Vulnerability scanning identifies potential weaknesses automatically; penetration testing actively exploits them to demonstrate real-world impact',
+      'Penetration testing is always automated with no human involvement',
+      'Vulnerability scanning requires written authorization but penetration testing does not',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Vulnerability scanning uses automated tools to identify known weaknesses, while penetration testing goes further by actively attempting to exploit those weaknesses to assess real-world risk.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q315',
+    question: 'What is the primary purpose of a SIEM system?',
+    options: [
+      'To physically secure server rooms',
+      'To aggregate, correlate, and analyze log data from multiple sources for threat detection and alerting',
+      'To encrypt data at rest',
+      'To manage employee onboarding',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A Security Information and Event Management (SIEM) system centralizes log collection from across the environment, correlating events to detect threats and generate alerts.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q316',
+    question: 'How does SOAR extend the capabilities of a SIEM?',
+    options: [
+      'SOAR replaces the need for log collection entirely',
+      'SOAR adds automated response playbooks and orchestration on top of detection and alerting',
+      'SOAR only works with physical security cameras',
+      'SOAR removes the need for human analysts permanently',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Security Orchestration, Automation, and Response (SOAR) platforms build on SIEM alerting by automating investigation and response workflows through predefined playbooks.',
+    difficulty: 'hard',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q317',
+    question: 'What is the main difference between a full backup and an incremental backup?',
+    options: [
+      'A full backup only saves file names',
+      'A full backup copies all data every time; an incremental backup only copies data changed since the last backup of any type',
+      'An incremental backup is always larger than a full backup',
+      'A full backup cannot be restored without an incremental backup',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A full backup copies all selected data every time it runs, while an incremental backup only copies data that changed since the most recent backup (full or incremental), saving time and storage.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q318',
+    question: 'What does the 3-2-1 backup rule recommend?',
+    options: [
+      'Three backups taken on the first day of the month',
+      'Three copies of data, on two different media types, with one copy stored off-site',
+      'Two copies of data reviewed three times a year',
+      'One backup encrypted with two different keys',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'The 3-2-1 rule recommends keeping three copies of data, stored on two different media types, with at least one copy kept off-site to protect against site-wide disasters.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q319',
+    question: 'What is the purpose of Network Access Control (NAC)?',
+    options: [
+      'To encrypt all wireless traffic',
+      'To evaluate and enforce device compliance before granting network access',
+      'To replace the need for firewalls',
+      'To manage DNS records exclusively',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'NAC evaluates a device\'s security posture (e.g., patch level, antivirus status) and enforces policy compliance before, or immediately after, granting network access.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q320',
+    question: 'What is the primary function of Endpoint Detection and Response (EDR)?',
+    options: [
+      'To manage user password resets',
+      'To continuously monitor endpoints for malicious activity and enable rapid investigation and response',
+      'To physically lock down USB ports',
+      'To provide network bandwidth throttling',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'EDR tools continuously monitor endpoint activity, detect suspicious behavior, and provide tools for investigation, containment, and response beyond traditional antivirus.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q321',
+    question: 'What is the goal of a Data Loss Prevention (DLP) solution?',
+    options: [
+      'To back up all company data automatically',
+      'To detect and prevent unauthorized transmission or exposure of sensitive data',
+      'To compress data for storage efficiency',
+      'To manage software license keys',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'DLP solutions monitor and control data in use, in motion, and at rest to detect and block unauthorized transmission or exposure of sensitive information.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q322',
+    question: 'Why is timely account deprovisioning important when an employee leaves an organization?',
+    options: [
+      'It reduces electricity costs',
+      'It prevents former employees from retaining unauthorized access to systems and data',
+      'It is only relevant for privileged accounts',
+      'It speeds up the hiring of a replacement',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Prompt deprovisioning removes a departed employee\'s access rights, closing a common avenue for unauthorized access, data theft, or sabotage by former insiders.',
+    difficulty: 'easy',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q323',
+    question: 'What is the principle of "least functionality" in system hardening?',
+    options: [
+      'Installing every available feature for flexibility',
+      'Disabling or removing unnecessary services, ports, and applications to reduce the attack surface',
+      'Limiting the number of administrators to one',
+      'Reducing the number of backups taken',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Least functionality means configuring systems to provide only the capabilities required for their purpose, disabling unneeded services and ports to minimize the attack surface.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q324',
+    question: 'What is a secure configuration baseline?',
+    options: [
+      'The default settings shipped by a vendor',
+      'A documented, approved standard configuration that systems must be built and maintained against',
+      'A one-time security scan report',
+      'A list of all employees with admin rights',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A secure configuration baseline defines the approved, hardened settings a system should be deployed and maintained with, providing a benchmark to detect unauthorized drift.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q325',
+    question: 'What is a primary security benefit of Mobile Device Management (MDM)?',
+    options: [
+      'It guarantees faster mobile network speeds',
+      'It allows centralized enforcement of security policies, remote wipe, and app control on mobile devices',
+      'It eliminates the need for device passcodes',
+      'It only manages device battery life',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'MDM platforms let organizations centrally enforce security policies (encryption, passcodes), push updates, and remotely wipe lost or stolen mobile devices.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q326',
+    question: 'What is the main purpose of a formal change management process?',
+    options: [
+      'To slow down all IT projects',
+      'To ensure changes to systems are reviewed, tested, approved, and documented to minimize unintended impact',
+      'To eliminate the need for testing environments',
+      'To automatically approve all emergency changes',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Change management ensures modifications to production systems go through review, testing, and approval, reducing the risk of outages or security gaps from unplanned changes.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q327',
+    question: 'What is threat hunting?',
+    options: [
+      'Waiting passively for automated alerts to fire',
+      'Proactively searching an environment for signs of undetected threats or adversary activity',
+      'Purchasing threat intelligence subscriptions only',
+      'Running a single annual vulnerability scan',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Threat hunting is a proactive practice where analysts actively search networks and endpoints for indicators of compromise or adversary activity that automated tools may have missed.',
+    difficulty: 'hard',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q328',
+    question: 'What is a key benefit of security automation and orchestration in daily operations?',
+    options: [
+      'It removes the need for any human oversight permanently',
+      'It reduces response time and analyst workload by automating repetitive detection and response tasks',
+      'It guarantees zero false positives',
+      'It replaces the need for logging',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Automation and orchestration speed up repetitive tasks like alert triage and containment actions, reducing analyst workload and shortening response times, though human oversight is still needed.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q329',
+    question: 'Which multifactor authentication factor category does a hardware token or authenticator app code belong to?',
+    options: ['Something you know', 'Something you have', 'Something you are', 'Somewhere you are'],
+    correctAnswer: 1,
+    explanation:
+      'A hardware token or one-time code from an authenticator app is classified as "something you have," a possession-based authentication factor.',
+    difficulty: 'easy',
+    domain: 'security_operations',
+  },
+  {
+    id: 'q330',
+    question: 'What is the purpose of centralized log management in security operations?',
+    options: [
+      'To reduce the number of servers needed',
+      'To aggregate logs from many sources into one place for easier correlation, retention, and analysis',
+      'To automatically fix vulnerabilities found in logs',
+      'To replace the need for a SIEM entirely',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Centralized log management collects logs from across the environment into a single repository, simplifying correlation, long-term retention, and forensic analysis during investigations.',
+    difficulty: 'medium',
+    domain: 'security_operations',
+  },
+
+  // ===== Additional Security Program Management (20%) =====
+  {
+    id: 'q411',
+    question: 'Which of the following is NOT one of the four common risk management strategies?',
+    options: ['Accept', 'Transfer', 'Avoid', 'Ignore'],
+    correctAnswer: 3,
+    explanation:
+      'The four standard risk management strategies are Accept, Avoid, Mitigate, and Transfer. "Ignore" is not a formal risk response strategy and leaves an organization unaware and exposed.',
+    difficulty: 'easy',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q412',
+    question: 'What is the key difference between qualitative and quantitative risk analysis?',
+    options: [
+      'Qualitative analysis uses numerical dollar values; quantitative uses descriptive ratings',
+      'Qualitative analysis uses descriptive ratings (e.g., high/medium/low); quantitative analysis uses numerical and monetary values',
+      'They produce identical results',
+      'Quantitative analysis is always faster to perform',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Qualitative risk analysis ranks risks using descriptive scales like high/medium/low, while quantitative analysis assigns numerical and monetary values, such as calculating Annualized Loss Expectancy.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q413',
+    question: 'Given a Single Loss Expectancy (SLE) of $10,000 and an Annualized Rate of Occurrence (ARO) of 2, what is the Annualized Loss Expectancy (ALE)?',
+    options: ['$5,000', '$10,000', '$20,000', '$2,000'],
+    correctAnswer: 2,
+    explanation:
+      'ALE = SLE x ARO, so $10,000 x 2 = $20,000. This represents the expected yearly monetary loss from a given risk.',
+    difficulty: 'hard',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q414',
+    question: 'Why is third-party (vendor) risk management important?',
+    options: [
+      'Vendors are never a source of security risk',
+      'External vendors and suppliers can introduce risk to an organization through their own security weaknesses',
+      'It is only relevant for financial audits',
+      'It replaces the need for internal security controls',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Vendors and suppliers often have access to systems or data, so weaknesses in their security posture can directly translate into risk for the organization that relies on them.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q415',
+    question: 'What is the primary purpose of security awareness training for employees?',
+    options: [
+      'To satisfy a one-time legal requirement only',
+      'To reduce human-related risk by teaching employees to recognize and respond to security threats',
+      'To replace the need for technical controls entirely',
+      'To train only IT staff on security topics',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Security awareness training reduces the human element of risk by teaching all employees to recognize phishing, social engineering, and other threats and respond appropriately.',
+    difficulty: 'easy',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q416',
+    question: 'What is the correct hierarchy from most to least authoritative: policy, standard, procedure, guideline?',
+    options: [
+      'Guideline, Procedure, Standard, Policy',
+      'Policy, Standard, Procedure, Guideline',
+      'Standard, Policy, Guideline, Procedure',
+      'Procedure, Guideline, Policy, Standard',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A policy sets high-level mandatory direction, standards define specific mandatory requirements supporting policy, procedures give step-by-step instructions, and guidelines offer recommended (non-mandatory) best practices.',
+    difficulty: 'hard',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q417',
+    question: 'In data governance, what is the primary responsibility of a data owner?',
+    options: [
+      'Performing daily backups of the data',
+      'Making decisions about data classification, access, and acceptable use, and bearing ultimate accountability for it',
+      'Physically storing the data on servers',
+      'Writing the application code that processes the data',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A data owner (typically a business leader) is accountable for a data set, deciding its classification, who can access it, and how it should be protected and used.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q418',
+    question: 'What is the key distinction between privacy and security in the context of personal data?',
+    options: [
+      'They are identical concepts',
+      'Security protects data from unauthorized access; privacy governs how personal data is collected, used, and shared appropriately',
+      'Privacy only applies to government agencies',
+      'Security is a subset of privacy law',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Security focuses on protecting data confidentiality, integrity, and availability from unauthorized access, while privacy concerns the appropriate collection, use, and disclosure of personal information.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q419',
+    question: 'What does the "right to be forgotten" under regulations like GDPR allow individuals to do?',
+    options: [
+      'Permanently delete an organization\'s backups',
+      'Request that an organization erase their personal data under certain conditions',
+      'Forget their own account password without consequence',
+      'Prevent any company from ever collecting data about them',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'The "right to be forgotten" (right to erasure) allows individuals to request that an organization delete their personal data when it is no longer needed or consent is withdrawn, subject to legal exceptions.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q420',
+    question: 'What is the difference between due diligence and due care?',
+    options: [
+      'They mean exactly the same thing',
+      'Due diligence is researching and understanding risk; due care is taking reasonable action to address it',
+      'Due care only applies to financial audits',
+      'Due diligence is a legal term with no security relevance',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Due diligence refers to the research and investigation to understand risks, while due care refers to the reasonable steps taken to address and mitigate those identified risks.',
+    difficulty: 'hard',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q421',
+    question: 'What type of agreement establishes the expected performance level (e.g., uptime, response time) between a service provider and a customer?',
+    options: ['NDA', 'MOU', 'Service Level Agreement (SLA)', 'BPA'],
+    correctAnswer: 2,
+    explanation:
+      'A Service Level Agreement (SLA) formally defines the expected performance metrics, such as uptime and response times, that a service provider commits to delivering.',
+    difficulty: 'easy',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q422',
+    question: 'What is the purpose of a Non-Disclosure Agreement (NDA)?',
+    options: [
+      'To define uptime guarantees for a service',
+      'To legally bind parties to keep specified information confidential',
+      'To outline a business partnership\'s revenue split',
+      'To specify technical security controls required by law',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'An NDA is a legal contract that obligates the parties involved to keep specified information confidential and not disclose it to unauthorized parties.',
+    difficulty: 'easy',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q423',
+    question: 'Why do security programs track metrics and key performance indicators (KPIs)?',
+    options: [
+      'To satisfy marketing requirements',
+      'To measure the effectiveness of controls and demonstrate progress or gaps to leadership',
+      'Metrics are not useful in security programs',
+      'To eliminate the need for audits',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Security metrics and KPIs (e.g., mean time to detect/respond, patch compliance rate) allow a program to measure control effectiveness and communicate risk posture and progress to leadership.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q424',
+    question: 'What is the role of a Change Advisory Board (CAB) in security program management?',
+    options: [
+      'To approve employee vacation requests',
+      'To review and approve proposed changes to systems to ensure risk is assessed before implementation',
+      'To perform annual financial audits',
+      'To manage the organization\'s marketing budget',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'A Change Advisory Board reviews proposed changes to production systems, assessing risk and impact before granting approval, as part of a formal change management process.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
+  {
+    id: 'q425',
+    question: 'What is the difference between PII and PHI?',
+    options: [
+      'They are the same category of data',
+      'PII is any data that can identify an individual; PHI is a subset specifically related to health information',
+      'PHI applies only to financial records',
+      'PII only refers to biometric data',
+    ],
+    correctAnswer: 1,
+    explanation:
+      'Personally Identifiable Information (PII) is any data that can identify a specific individual, while Protected Health Information (PHI) is a subset of PII specifically covering health-related records, often regulated under laws like HIPAA.',
+    difficulty: 'medium',
+    domain: 'security_program_management',
+  },
 ];

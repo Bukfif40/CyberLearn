@@ -34,7 +34,12 @@ export const StudyGoals: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Study Goals</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => setShowAddGoal(!showAddGoal)}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowAddGoal(!showAddGoal)}
+          accessibilityRole="button"
+          accessibilityLabel={showAddGoal ? 'Close add goal form' : 'Add a study goal'}
+        >
           <Text style={styles.addButtonText}>+ Add Goal</Text>
         </TouchableOpacity>
       </View>
@@ -75,6 +80,8 @@ export const StudyGoals: React.FC = () => {
           <Text style={styles.formTitle}>Quick Add Goal</Text>
           <TouchableOpacity
             style={styles.quickGoalButton}
+            accessibilityRole="button"
+            accessibilityLabel="Add weekly goal: 5 hours this week"
             onPress={async () => {
               const deadline = new Date();
               deadline.setDate(deadline.getDate() + 7);
@@ -91,6 +98,8 @@ export const StudyGoals: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickGoalButton}
+            accessibilityRole="button"
+            accessibilityLabel="Add monthly goal: 20 hours this month"
             onPress={async () => {
               const deadline = new Date();
               deadline.setDate(deadline.getDate() + 30);
