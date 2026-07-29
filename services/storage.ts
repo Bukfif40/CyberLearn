@@ -1,21 +1,32 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LearningProgress, UserPreferences } from '../types';
+import { UserPreferences, QuestionStats, GamificationData, QuizResult, StudySession, StudyGoal } from '../types';
 
 const KEYS = {
   USER_PREFERENCES: '@cyberlearn_user_preferences',
-  LEARNING_PROGRESS: '@cyberlearn_learning_progress_',
-  FAVORITES: '@cyberlearn_favorites',
+  QUESTION_STATS: '@cyberlearn_question_stats',
+  GAMIFICATION: '@cyberlearn_gamification',
 };
 
 export class StorageService {
-  // User Preferences
-  static async getUserPreferences(): Promise<UserPreferences | null> {
+  // ===== User Preferences (quizResults, studySessions, studyGoals, activeSession) =====
+  
+  static async getPreferences(): Promise<UserPreferences> {
     try {
       const data = await AsyncStorage.getItem(KEYS.USER_PREFERENCES);
-      return data ? JSON.parse(data) : null;
+      return data ? JSON.parse(data) : { quizResults: [], studySessions: [], studyGoals: [], activeSession: null };
     } catch (error) {
       console.error('Error getting user preferences:', error);
-      return null;
+      return { quizResults: [], studySessions: [], studyGoals: [], activeSession: null };
+    }
+  }
+
+  static async updatePreferences(patch: Partial<UserPreferences>): Promise<void> {
+    try {
+      const existing = await this.getPreferences();
+      const merged = { ...existing, ...patch };
+      await AsyncStorage.setItem(KEYS.USER_PREFERENCES, JSON.stringify(merged));
+    } catch (error) {
+      console.error('Error updating preferences:', error);
     }
   }
 
@@ -27,160 +38,135 @@ export class StorageService {
     }
   }
 
-  static async updatePreferences(patch: Partial<UserPreferences>): Promise<void> {
-    try {
-      const existing = (await this.getUserPreferences()) || {} as UserPreferences;
-      await AsyncStorage.setItem(KEYS.USER_PREFERENCES, JSON.stringify({ ...existing, ...patch }));
-    } catch (error) {
-      console.error('Error updating preferences:', error);
-    }
-  }
-
   static async updateGithubToken(token: string): Promise<void> {
     try {
-      const preferences = await this.getUserPreferences();
-      const updatedPreferences: UserPreferences = {
-        ...preferences,
-        githubToken: token,
-        favoriteRoadmaps: preferences?.favoriteRoadmaps || [],
-        learningGoals: preferences?.learningGoals || [],
-        skillLevel: preferences?.skillLevel || 'beginner',
-      };
-      await this.saveUserPreferences(updatedPreferences);
+      const preferences = await this.getPreferences();
+      await this.updatePreferences({ ...preferences, ...{ } });
     } catch (error) {
       console.error('Error updating GitHub token:', error);
     }
   }
 
-  // Favorites
-  static async getFavorites(): Promise<string[]> {
+  // ===== Question Stats (spaced repetition) =====
+
+  static async getAllQuestionStats(): Promise<Record<string, QuestionStats>> {
     try {
-      const data = await AsyncStorage.getItem(KEYS.FAVORITES);
-      return data ? JSON.parse(data) : [];
+      const data = await AsyncStorage.getItem(KEYS.QUESTION_STATS);
+      return data ? JSON.parse(data) : {};
     } catch (error) {
-      console.error('Error getting favorites:', error);
-      return [];
+      console.error('Error getting question stats:', error);
+      return {};
     }
   }
 
-  static async addFavorite(roadmapId: string): Promise<void> {
+  static async getQuestionStats(questionId: string): Promise<QuestionStats | null> {
     try {
-      const favorites = await this.getFavorites();
-      if (!favorites.includes(roadmapId)) {
-        favorites.push(roadmapId);
-        await AsyncStorage.setItem(KEYS.FAVORITES, JSON.stringify(favorites));
-      }
+      const all = await this.getAllQuestionStats();
+      return all[questionId] || null;
     } catch (error) {
-      console.error('Error adding favorite:', error);
-    }
-  }
-
-  static async removeFavorite(roadmapId: string): Promise<void> {
-    try {
-      const favorites = await this.getFavorites();
-      const updated = favorites.filter(id => id !== roadmapId);
-      await AsyncStorage.setItem(KEYS.FAVORITES, JSON.stringify(updated));
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-    }
-  }
-
-  static async isFavorite(roadmapId: string): Promise<boolean> {
-    try {
-      const favorites = await this.getFavorites();
-      return favorites.includes(roadmapId);
-    } catch (error) {
-      console.error('Error checking favorite:', error);
-      return false;
-    }
-  }
-
-  // Learning Progress
-  static async getLearningProgress(roadmapId: string): Promise<LearningProgress | null> {
-    try {
-      const data = await AsyncStorage.getItem(KEYS.LEARNING_PROGRESS + roadmapId);
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error('Error getting learning progress:', error);
+      console.error('Error getting question stats:', error);
       return null;
     }
   }
 
-  static async saveLearningProgress(progress: LearningProgress): Promise<void> {
+  static async saveQuestionStats(questionId: string, stats: QuestionStats): Promise<void> {
     try {
-      await AsyncStorage.setItem(
-        KEYS.LEARNING_PROGRESS + progress.roadmapId,
-        JSON.stringify(progress)
-      );
+      const all = await this.getAllQuestionStats();
+      all[questionId] = stats;
+      await AsyncStorage.setItem(KEYS.QUESTION_STATS, JSON.stringify(all));
     } catch (error) {
-      console.error('Error saving learning progress:', error);
+      console.error('Error saving question stats:', error);
     }
   }
 
-  static async updateTopicProgress(
-    roadmapId: string,
-    topic: string,
-    completed: boolean
-  ): Promise<void> {
+  // ===== Gamification Data =====
+
+  static async getGamificationRaw(): Promise<GamificationData | null> {
     try {
-      const progress = await this.getLearningProgress(roadmapId);
-      if (progress) {
-        if (completed && !progress.completedTopics.includes(topic)) {
-          progress.completedTopics.push(topic);
-        } else if (!completed) {
-          progress.completedTopics = progress.completedTopics.filter(t => t !== topic);
-        }
-        progress.lastAccessed = new Date().toISOString();
-        await this.saveLearningProgress(progress);
-      }
+      const data = await AsyncStorage.getItem(KEYS.GAMIFICATION);
+      return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Error updating topic progress:', error);
+      console.error('Error getting gamification data:', error);
+      return null;
     }
   }
 
-  static async setCurrentTopic(roadmapId: string, topic: string | null): Promise<void> {
+  static async setGamificationRaw(data: GamificationData): Promise<void> {
     try {
-      const progress = await this.getLearningProgress(roadmapId);
-      if (progress) {
-        progress.currentTopic = topic;
-        progress.lastAccessed = new Date().toISOString();
-        await this.saveLearningProgress(progress);
-      }
+      await AsyncStorage.setItem(KEYS.GAMIFICATION, JSON.stringify(data));
     } catch (error) {
-      console.error('Error setting current topic:', error);
+      console.error('Error saving gamification data:', error);
     }
   }
 
-  static async updateNotes(roadmapId: string, notes: string): Promise<void> {
+  // ===== Convenience Methods =====
+
+  static async saveQuizResult(result: QuizResult): Promise<void> {
     try {
-      const progress = await this.getLearningProgress(roadmapId);
-      if (progress) {
-        progress.notes = notes;
-        progress.lastAccessed = new Date().toISOString();
-        await this.saveLearningProgress(progress);
-      }
+      const prefs = await this.getPreferences();
+      prefs.quizResults.push(result);
+      await this.updatePreferences({ quizResults: prefs.quizResults });
     } catch (error) {
-      console.error('Error updating notes:', error);
+      console.error('Error saving quiz result:', error);
     }
   }
 
-  // Get all learning progress for dashboard
-  static async getAllLearningProgress(): Promise<LearningProgress[]> {
+  static async getQuizResults(): Promise<QuizResult[]> {
     try {
-      const allKeys = await AsyncStorage.getAllKeys();
-      const progressKeys = allKeys.filter(key => key.startsWith(KEYS.LEARNING_PROGRESS));
-      const progressData = await AsyncStorage.multiGet(progressKeys);
-      
-      return progressData
-        .map(([_, data]) => (data ? JSON.parse(data) : null))
-        .filter(Boolean);
+      const prefs = await this.getPreferences();
+      return prefs.quizResults || [];
     } catch (error) {
-      console.error('Error getting all learning progress:', error);
+      console.error('Error getting quiz results:', error);
       return [];
     }
   }
 
-  // Clear all data (for testing/logout)
+  static async getActiveSession(): Promise<StudySession | null> {
+    try {
+      const prefs = await this.getPreferences();
+      return prefs.activeSession || null;
+    } catch (error) {
+      console.error('Error getting active session:', error);
+      return null;
+    }
+  }
+
+  static async setActiveSession(session: StudySession | null): Promise<void> {
+    try {
+      await this.updatePreferences({ activeSession: session });
+    } catch (error) {
+      console.error('Error setting active session:', error);
+    }
+  }
+
+  static async saveCompletedSession(session: StudySession): Promise<void> {
+    try {
+      const prefs = await this.getPreferences();
+      prefs.studySessions.push(session);
+      await this.updatePreferences({ studySessions: prefs.studySessions, activeSession: null });
+    } catch (error) {
+      console.error('Error saving completed session:', error);
+    }
+  }
+
+  static async getStudyGoals(): Promise<StudyGoal[]> {
+    try {
+      const prefs = await this.getPreferences();
+      return prefs.studyGoals || [];
+    } catch (error) {
+      console.error('Error getting study goals:', error);
+      return [];
+    }
+  }
+
+  static async saveStudyGoals(goals: StudyGoal[]): Promise<void> {
+    try {
+      await this.updatePreferences({ studyGoals: goals });
+    } catch (error) {
+      console.error('Error saving study goals:', error);
+    }
+  }
+
   static async clearAll(): Promise<void> {
     try {
       await AsyncStorage.clear();

@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { StudyTimerService } from '../services/studyTimer';
 
 interface StudyTimerProps {
-  roadmapId: string;
+  roadmapId?: string;
   onSessionComplete?: (duration: number) => void;
 }
 
-export const StudyTimer: React.FC<StudyTimerProps> = ({ roadmapId, onSessionComplete }) => {
+export const StudyTimer: React.FC<StudyTimerProps> = ({ roadmapId = '', onSessionComplete }) => {
   const [isActive, setIsActive] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
@@ -25,7 +25,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ roadmapId, onSessionComp
 
   const checkActiveSession = async () => {
     const activeSession = await StudyTimerService.getActiveSession();
-    if (activeSession && activeSession.roadmapId === roadmapId) {
+    if (activeSession) {
       setIsActive(true);
       setSessionId(activeSession.id);
     }
@@ -39,7 +39,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ roadmapId, onSessionComp
   };
 
   const handleStart = async () => {
-    const newSessionId = await StudyTimerService.startSession(roadmapId);
+    const newSessionId = await StudyTimerService.startSession();
     setSessionId(newSessionId);
     setIsActive(true);
   };

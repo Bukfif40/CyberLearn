@@ -57,7 +57,7 @@ export const QuizQuestionCard: React.FC<QuizQuestionCardProps> = ({
         <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(question.difficulty) }]}>
           <Text style={styles.difficultyText}>{question.difficulty.toUpperCase()}</Text>
         </View>
-        <Text style={styles.category}>{question.category}</Text>
+        <Text style={styles.category}>{question.domain}</Text>
       </View>
 
       <Text style={styles.question}>{question.question}</Text>

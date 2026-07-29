@@ -17,7 +17,9 @@ export const StudyGoals: React.FC = () => {
   };
 
   const getProgress = (goal: StudyGoal) => {
-    return Math.min((goal.currentMinutes / goal.targetMinutes) * 100, 100);
+    const completedMinutes = goal.currentMinutes ?? 0;
+    const targetMinutes = goal.targetMinutes ?? 1;
+    return Math.min((completedMinutes / targetMinutes) * 100, 100);
   };
 
   const getDaysRemaining = (deadline: string) => {
@@ -57,7 +59,7 @@ export const StudyGoals: React.FC = () => {
 
               <View style={styles.goalStats}>
                 <Text style={styles.goalStat}>
-                  {Math.round(goal.currentMinutes)} / {goal.targetMinutes} min
+                  {Math.round(goal.currentMinutes ?? 0)} / {goal.targetMinutes ?? 0} min
                 </Text>
                 <Text style={styles.goalStat}>
                   {getDaysRemaining(goal.deadline)} days left

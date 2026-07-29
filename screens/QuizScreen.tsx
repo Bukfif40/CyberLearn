@@ -6,25 +6,16 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { QuizQuestionCard } from '../components/QuizQuestionCard';
 import { QuizService } from '../services/quizService';
-import { QuizQuestion, QuizResult } from '../types';
+import { QuizQuestion, DOMAIN_INFO, SecurityDomain } from '../types';
 
 interface QuizScreenProps {
   onBack: () => void;
-  quizType?: 'random' | 'category' | 'difficulty' | 'mixed';
-  category?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
-export const QuizScreen: React.FC<QuizScreenProps> = ({
-  onBack,
-  quizType = 'mixed',
-  category,
-  difficulty,
-}) => {
+export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -34,32 +25,22 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
 
   useEffect(() => {
     loadQuestions();
-    setStartTime(Date.now());
-  }, [quizType, category, difficulty]);
+  }, []);
 
-  const loadQuestions = () => {
-    setLoading(true);
-    let loadedQuestions: QuizQuestion[] = [];
-
-    switch (quizType) {
-      case 'category':
-        loadedQuestions = QuizService.getQuestionsByCategory(category || 'Fundamentals', 5);
-        break;
-      case 'difficulty':
-        loadedQuestions = QuizService.getQuestionsByDifficulty(difficulty || 'medium', 5);
-        break;
-      case 'random':
-        loadedQuestions = QuizService.getRandomQuestions(5);
-        break;
-      case 'mixed':
-      default:
-        loadedQuestions = QuizService.getMixedDifficultyQuiz(5);
-        break;
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      const loadedQuestions = await QuizService.getAdaptiveQuiz(10);
+      setQuestions(loadedQuestions);
+      setAnswers(new Array(loadedQuestions.length).fill(null));
+      setCurrentQuestionIndex(0);
+      setShowResults(false);
+      setStartTime(Date.now());
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    } finally {
+      setLoading(false);
     }
-
-    setQuestions(loadedQuestions);
-    setAnswers(new Array(loadedQuestions.length).fill(null));
-    setLoading(false);
   };
 
   const handleAnswerSelect = (answerIndex: number) => {
@@ -68,7 +49,16 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
     setAnswers(newAnswers);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const selectedAnswer = answers[currentQuestionIndex];
+
+    // Record answer immediately (spaced repetition)
+    if (selectedAnswer !== null) {
+      const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+      await QuizService.recordAnswer(currentQuestion.id, isCorrect);
+    }
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -83,26 +73,14 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
   };
 
   const finishQuiz = async () => {
-    const score = QuizService.calculateScore(answers as number[], questions);
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
-    const correctCount = answers.filter((a, i) => a === questions[i].correctAnswer).length;
-    
-    const result: QuizResult = {
-      quizId: `quiz_${Date.now()}`,
-      score,
-      totalQuestions: questions.length,
-      correctAnswers: correctCount,
-      timeTaken,
-      completedAt: new Date().toISOString(),
-    };
-
-    await QuizService.saveQuizResult(result);
+    await QuizService.saveQuizResult(answers as number[], questions, timeTaken);
     setShowResults(true);
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return '#4ade80';
-    if (score >= 60) return '#fbbf24';
+  const getScoreColor = (accuracy: number): string => {
+    if (accuracy >= 80) return '#4ade80';
+    if (accuracy >= 60) return '#fbbf24';
     return '#ef4444';
   };
 
@@ -113,18 +91,33 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Loading Quiz...</Text>
+          <View style={{ width: 50 }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#e94560" />
-          <Text style={styles.loadingText}>Loading quiz...</Text>
+          <Text style={styles.loadingText}>Preparing your adaptive quiz...</Text>
         </View>
       </View>
     );
   }
 
   if (showResults) {
-    const score = QuizService.calculateScore(answers as number[], questions);
     const correctCount = answers.filter((a, i) => a === questions[i].correctAnswer).length;
+    const score = Math.round((correctCount / questions.length) * 100);
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+
+    // Calculate domain breakdown
+    const domainBreakdown: Record<string, { correct: number; total: number }> = {};
+    questions.forEach((q, i) => {
+      if (!domainBreakdown[q.domain]) {
+        domainBreakdown[q.domain] = { correct: 0, total: 0 };
+      }
+      domainBreakdown[q.domain].total += 1;
+      if (answers[i] === q.correctAnswer) {
+        domainBreakdown[q.domain].correct += 1;
+      }
+    });
 
     return (
       <View style={styles.container}>
@@ -132,52 +125,75 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Quiz Results</Text>
+          <Text style={styles.headerTitle}>Results</Text>
           <View style={{ width: 50 }} />
         </View>
 
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.resultsContainer}>
-            <View style={[styles.scoreCircle, { borderColor: getScoreColor(score) }]}>
-              <Text style={[styles.scoreText, { color: getScoreColor(score) }]}>{score}%</Text>
-            </View>
-
-            <Text style={resultsStyles.title}>Quiz Complete!</Text>
-            <Text style={resultsStyles.subtitle}>
-              You got {correctCount} out of {questions.length} questions correct
-            </Text>
-
-            <View style={resultsStyles.statsRow}>
-              <View style={resultsStyles.stat}>
-                <Text style={resultsStyles.statValue}>{correctCount}</Text>
-                <Text style={resultsStyles.statLabel}>Correct</Text>
-              </View>
-              <View style={resultsStyles.stat}>
-                <Text style={resultsStyles.statValue}>{questions.length - correctCount}</Text>
-                <Text style={resultsStyles.statLabel}>Incorrect</Text>
-              </View>
-              <View style={resultsStyles.stat}>
-                <Text style={resultsStyles.statValue}>{Math.round((Date.now() - startTime) / 1000 / 60)}m</Text>
-                <Text style={resultsStyles.statLabel}>Time</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity style={styles.retryButton} onPress={loadQuestions}>
-              <Text style={styles.retryButtonText}>Try Another Quiz</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.reviewTitle}>Review Answers:</Text>
-            {questions.map((question, index) => (
-              <QuizQuestionCard
-                key={question.id}
-                question={question}
-                selectedAnswer={answers[index]}
-                onAnswerSelect={() => {}}
-                showResult={true}
-              />
-            ))}
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.resultsContent}>
+          {/* Score Circle */}
+          <View style={[styles.scoreCircle, { borderColor: getScoreColor(score) }]}>
+            <Text style={[styles.scoreText, { color: getScoreColor(score) }]}>{score}%</Text>
           </View>
+
+          <Text style={styles.resultsTitle}>Quiz Complete!</Text>
+          <Text style={styles.resultsSubtitle}>
+            You got {correctCount} out of {questions.length} questions correct
+          </Text>
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{correctCount}</Text>
+              <Text style={styles.statLabel}>Correct</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{questions.length - correctCount}</Text>
+              <Text style={styles.statLabel}>Incorrect</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{Math.floor(timeTaken / 60)}m {timeTaken % 60}s</Text>
+              <Text style={styles.statLabel}>Time</Text>
+            </View>
+          </View>
+
+          {/* Domain Breakdown */}
+          <Text style={styles.domainTitle}>By Domain:</Text>
+          {Object.entries(domainBreakdown).map(([domain, stats]) => (
+            <View key={domain} style={styles.domainBreakdownItem}>
+              <View style={styles.domainBreakdownHeader}>
+                <Text style={styles.domainBreakdownName}>
+                  {DOMAIN_INFO[domain as SecurityDomain].icon} {DOMAIN_INFO[domain as SecurityDomain].title}
+                </Text>
+                <Text style={[styles.domainBreakdownAccuracy, { color: getScoreColor(Math.round((stats.correct / stats.total) * 100)) }]}>
+                  {Math.round((stats.correct / stats.total) * 100)}%
+                </Text>
+              </View>
+              <Text style={styles.domainBreakdownStats}>
+                {stats.correct}/{stats.total} questions correct
+              </Text>
+            </View>
+          ))}
+
+          {/* Retry Button */}
+          <TouchableOpacity style={styles.retryButton} onPress={loadQuestions}>
+            <Text style={styles.retryButtonText}>🚀 New Adaptive Quiz</Text>
+          </TouchableOpacity>
         </ScrollView>
+      </View>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>No questions available</Text>
+        </View>
       </View>
     );
   }
@@ -191,7 +207,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Question {currentQuestionIndex + 1}/{questions.length}</Text>
+        <Text style={styles.headerTitle}>
+          {currentQuestionIndex + 1}/{questions.length}
+        </Text>
         <View style={{ width: 50 }} />
       </View>
 
@@ -199,7 +217,10 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
         <View style={[styles.progressBar, { width: `${progress}%` }]} />
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.questionContent}>
+        <Text style={styles.domainTag}>
+          {DOMAIN_INFO[currentQuestion.domain].icon} {DOMAIN_INFO[currentQuestion.domain].title}
+        </Text>
         <QuizQuestionCard
           question={currentQuestion}
           selectedAnswer={answers[currentQuestionIndex]}
@@ -269,6 +290,16 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  questionContent: {
+    padding: 16,
+  },
+  domainTag: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#a855f7',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -301,8 +332,9 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     color: '#a0a0a0',
+    fontSize: 16,
   },
-  resultsContainer: {
+  resultsContent: {
     padding: 16,
   },
   scoreCircle: {
@@ -319,44 +351,27 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
   },
-  retryButton: {
-    backgroundColor: '#4ade80',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  retryButtonText: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  reviewTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginTop: 24,
-    marginBottom: 12,
-  },
-});
-
-const resultsStyles = StyleSheet.create({
-  title: {
+  resultsTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: 'center',
   },
-  subtitle: {
+  resultsSubtitle: {
     fontSize: 16,
     color: '#a0a0a0',
     textAlign: 'center',
     marginTop: 8,
+    marginBottom: 24,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 24,
+    marginVertical: 16,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#16213e',
   },
   stat: {
     alignItems: 'center',
@@ -370,5 +385,50 @@ const resultsStyles = StyleSheet.create({
     fontSize: 12,
     color: '#a0a0a0',
     marginTop: 4,
+  },
+  domainTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#bbb',
+    marginTop: 24,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
+  domainBreakdownItem: {
+    backgroundColor: '#1a1a2e',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  domainBreakdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  domainBreakdownName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  domainBreakdownAccuracy: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  domainBreakdownStats: {
+    fontSize: 12,
+    color: '#999',
+  },
+  retryButton: {
+    backgroundColor: '#4ade80',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  retryButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

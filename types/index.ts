@@ -1,79 +1,107 @@
-export interface Roadmap {
+// Security+ SY0-701 Domains
+export type SecurityDomain =
+  | 'general_security_concepts'
+  | 'threats_vulnerabilities_mitigations'
+  | 'security_architecture'
+  | 'security_operations'
+  | 'security_program_management';
+
+export interface DomainInfo {
+  title: string;
+  weight: number; // Exam percentage
+  icon: string;
+}
+
+export const DOMAIN_INFO: Record<SecurityDomain, DomainInfo> = {
+  general_security_concepts: {
+    title: 'General Security Concepts',
+    weight: 12,
+    icon: '🔐',
+  },
+  threats_vulnerabilities_mitigations: {
+    title: 'Threats, Vulnerabilities & Mitigations',
+    weight: 22,
+    icon: '⚠️',
+  },
+  security_architecture: {
+    title: 'Security Architecture',
+    weight: 18,
+    icon: '🏗️',
+  },
+  security_operations: {
+    title: 'Security Operations',
+    weight: 28,
+    icon: '🛡️',
+  },
+  security_program_management: {
+    title: 'Security Program Management',
+    weight: 20,
+    icon: '📋',
+  },
+};
+
+// Quiz types
+export interface QuizQuestion {
   id: string;
-  name: string;
-  full_name: string;
+  question: string;
+  options: string[];
+  correctAnswer: number; // Index of correct option
+  explanation: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  domain: SecurityDomain;
+}
+
+export interface QuestionStats {
+  questionId: string;
+  boxLevel: number; // 1-5 Leitner system
+  timesCorrect: number;
+  timesIncorrect: number;
+  lastSeenAt: string | null; // ISO string
+  nextReviewAt: string | null; // ISO string
+}
+
+export interface QuizResult {
+  quizId: string;
+  score: number; // Percentage
+  totalQuestions: number;
+  correctAnswers: number;
+  timeTaken: number; // Seconds
+  completedAt: string; // ISO string
+  domainBreakdown: Record<SecurityDomain, { correct: number; total: number }>;
+  answers: number[]; // Answer indices for each question
+}
+
+export interface DomainReadiness {
+  domain: SecurityDomain;
+  title: string;
+  weight: number; // Official exam weight %
+  accuracy: number; // Percentage correct
+  questionsAnswered: number;
+  totalQuestions: number;
+  coverage: number; // Percentage of questions seen
+}
+
+// Study resources
+export type ResourceType = 'video' | 'reading' | 'official' | 'practice_exam';
+
+export interface StudyResource {
+  id: string;
+  title: string;
+  type: ResourceType;
+  domain: SecurityDomain | 'all';
+  url: string;
   description: string;
-  stars: number;
-  forks: number;
-  updated_at: string;
-  html_url: string;
-  owner: {
-    login: string;
-    avatar_url: string;
-  };
+  free: boolean;
 }
 
-export interface IndustryStandards {
-  score: number;
-  criteria: {
-    frameworks: {
-      nist: boolean;
-      mitre: boolean;
-      iso: boolean;
-      sans: boolean;
-    };
-    certifications: {
-      comptia: boolean;
-      cissp: boolean;
-      oscp: boolean;
-      ceh: boolean;
-      aws: boolean;
-    };
-    hands_on: {
-      tryhackme: boolean;
-      hackthebox: boolean;
-      labs: boolean;
-      projects: boolean;
-    };
-    structure: {
-      beginner: boolean;
-      intermediate: boolean;
-      advanced: boolean;
-      career: boolean;
-    };
-  };
-}
-
-export interface LearningProgress {
-  roadmapId: string;
-  completedTopics: string[];
-  currentTopic: string | null;
-  startedAt: string;
-  lastAccessed: string;
-  notes: string;
-}
-
-export interface UserPreferences {
-  githubToken: string;
-  favoriteRoadmaps: string[];
-  learningGoals: string[];
-  skillLevel: 'beginner' | 'intermediate' | 'advanced';
-  quizResults?: QuizResult[];
-  studySessions?: StudySession[];
-  studyGoals?: StudyGoal[];
-  platformProgress?: PlatformProgress[];
-  activeSession?: StudySession;
-  viewedRoadmaps?: string[];
-  notesCount?: number;
-}
-
+// Gamification
 export interface GamificationData {
   xp: number;
   level: number;
   streak: number;
-  lastActiveDate: string;
+  lastActiveDate: string; // ISO string
   achievements: Achievement[];
-  totalStudyTime: number;
+  totalStudyTime: number; // Minutes
 }
 
 export interface Achievement {
@@ -81,78 +109,40 @@ export interface Achievement {
   title: string;
   description: string;
   icon: string;
-  unlockedAt: string | null;
+  unlockedAt: string | null; // ISO string
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
-export type CareerPath = 'soc_analyst' | 'penetration_tester' | 'grc_analyst' | 'cloud_security' | 'incident_responder' | 'detection_engineer';
-
-export interface CareerPathData {
-  id: CareerPath;
-  title: string;
-  description: string;
-  icon: string;
-  color: string;
-  duration: string;
-  salaryRange: string;
-  certifications: string[];
-  keySkills: string[];
-  searchKeywords: string[];
-}
-
-export interface QuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  category: string;
-}
-
-export interface QuizResult {
-  quizId: string;
-  score: number;
-  totalQuestions: number;
-  correctAnswers: number;
-  timeTaken: number;
-  completedAt: string;
-}
-
+// Study session management
 export interface StudySession {
   id: string;
-  roadmapId: string;
-  startTime: string;
-  endTime: string | null;
-  duration: number; // in minutes
-  notes: string;
-  topicsCovered: string[];
+  startedAt: string; // ISO string
+  endedAt: string | null; // ISO string
+  duration: number; // Minutes
+  xpEarned: number;
+  questionsAttempted: number;
+  correctAnswers: number;
+  startTime?: string; // For compatibility with old components
 }
 
 export interface StudyGoal {
   id: string;
-  title: string;
-  targetMinutes: number;
-  currentMinutes: number;
-  deadline: string;
-  completed: boolean;
+  domain: SecurityDomain | 'all';
+  targetAccuracy: number; // Percentage
+  targetQuestionsPerDay: number;
+  deadline: string; // ISO string
+  status: 'active' | 'completed' | 'abandoned';
+  createdAt: string; // ISO string
+  title?: string; // For compatibility with StudyGoals component
+  completed?: boolean; // For compatibility
+  currentMinutes?: number; // For compatibility
+  targetMinutes?: number; // For compatibility
 }
 
-export interface ExternalPlatform {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  url: string;
-  description: string;
-  features: string[];
-}
-
-export interface PlatformProgress {
-  platformId: string;
-  username: string;
-  completedRooms: number;
-  totalRooms: number;
-  rank: string;
-  lastUpdated: string;
+// User preferences (stored as single AsyncStorage key)
+export interface UserPreferences {
+  quizResults: QuizResult[];
+  studySessions: StudySession[];
+  studyGoals: StudyGoal[];
+  activeSession: StudySession | null;
 }
