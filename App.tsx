@@ -7,62 +7,54 @@ import { QuizScreen } from './screens/QuizScreen';
 import { FlashcardsScreen } from './screens/FlashcardsScreen';
 import { PracticeExamScreen } from './screens/PracticeExamScreen';
 
-type Screen = 'home' | 'quiz' | 'mistakes' | 'flashcards' | 'exam';
+type Route =
+  | { name: 'home' }
+  | { name: 'quiz'; mode: 'adaptive' }
+  | { name: 'mistakes' }
+  | { name: 'flashcards' }
+  | { name: 'exam' };
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
+  const [stack, setStack] = useState<Route[]>([{ name: 'home' }]);
   const [fontsLoaded, fontError] = useFonts({ PressStart2P_400Regular, VT323_400Regular });
 
-  const goHome = () => setCurrentScreen('home');
+  const current = stack[stack.length - 1];
+  const push = (route: Route) => setStack(s => [...s, route]);
+  const pop = () => setStack(s => (s.length > 1 ? s.slice(0, -1) : s));
 
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
-  if (currentScreen === 'quiz') {
-    return (
-      <>
-        <QuizScreen onBack={goHome} mode="adaptive" />
-        <StatusBar style="light" />
-      </>
-    );
-  }
-
-  if (currentScreen === 'mistakes') {
-    return (
-      <>
-        <QuizScreen onBack={goHome} mode="mistakes" />
-        <StatusBar style="light" />
-      </>
-    );
-  }
-
-  if (currentScreen === 'flashcards') {
-    return (
-      <>
-        <FlashcardsScreen onBack={goHome} />
-        <StatusBar style="light" />
-      </>
-    );
-  }
-
-  if (currentScreen === 'exam') {
-    return (
-      <>
-        <PracticeExamScreen onBack={goHome} />
-        <StatusBar style="light" />
-      </>
-    );
-  }
+  const renderScreen = () => {
+    switch (current.name) {
+      case 'quiz':
+        return <QuizScreen onBack={pop} mode="adaptive" />;
+      case 'mistakes':
+        return <QuizScreen onBack={pop} mode="mistakes" />;
+      case 'flashcards':
+        return <FlashcardsScreen onBack={pop} />;
+      case 'exam':
+        return <PracticeExamScreen onBack={pop} />;
+      case 'home':
+        return (
+          <HomeScreen
+            onQuizPress={() => push({ name: 'quiz', mode: 'adaptive' })}
+            onMistakesPress={() => push({ name: 'mistakes' })}
+            onFlashcardsPress={() => push({ name: 'flashcards' })}
+            onExamPress={() => push({ name: 'exam' })}
+          />
+        );
+      default: {
+        const exhaustive: never = current;
+        throw new Error(`Unhandled route: ${JSON.stringify(exhaustive)}`);
+      }
+    }
+  };
 
   return (
     <>
-      <HomeScreen
-        onQuizPress={() => setCurrentScreen('quiz')}
-        onMistakesPress={() => setCurrentScreen('mistakes')}
-        onFlashcardsPress={() => setCurrentScreen('flashcards')}
-        onExamPress={() => setCurrentScreen('exam')}
-      />
+      {renderScreen()}
       <StatusBar style="light" />
     </>
   );
