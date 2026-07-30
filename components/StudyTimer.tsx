@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { StudyTimerService } from '../services/studyTimer';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface StudyTimerProps {
   roadmapId?: string;
@@ -83,38 +84,41 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ roadmapId = '', onSessio
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.none,
+    borderWidth: PIXEL_BORDER,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
     alignItems: 'center',
   },
   label: {
     fontSize: 12,
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     marginBottom: 4,
+    fontFamily: FONTS.pixelDisplay,
   },
   duration: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#e94560',
-    marginBottom: 12,
+    fontSize: 28,
+    color: COLORS.accent,
+    marginBottom: SPACING.md,
+    fontFamily: FONTS.pixelDisplay,
   },
   button: {
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.xl,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: RADII.none,
     minWidth: 100,
     alignItems: 'center',
   },
   startButton: {
-    backgroundColor: '#4ade80',
+    backgroundColor: COLORS.accent,
   },
   stopButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: COLORS.danger,
   },
   buttonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: COLORS.textOnAccent,
+    fontSize: 12,
+    fontFamily: FONTS.pixelDisplay,
   },
 });

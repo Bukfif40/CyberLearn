@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { FlashCard } from '../components/FlashCard';
+import { PixelButton } from '../components/retro/PixelButton';
 import { QUIZ_QUESTIONS } from '../data/quizQuestions';
 import { DOMAIN_INFO, SecurityDomain } from '../types';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface FlashcardsScreenProps {
   onBack: () => void;
@@ -106,24 +108,21 @@ export const FlashcardsScreen: React.FC<FlashcardsScreenProps> = ({ onBack }) =>
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.navButton, cards.length === 0 && styles.disabledButton]}
+        <PixelButton
+          style={styles.navButton}
+          variant="secondary"
           onPress={handlePrevious}
           disabled={cards.length === 0}
-          accessibilityRole="button"
           accessibilityLabel="Previous flashcard"
-        >
-          <Text style={styles.navButtonText}>Previous</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.navButton, cards.length === 0 && styles.disabledButton]}
+          title="Previous"
+        />
+        <PixelButton
+          style={styles.navButton}
           onPress={handleNext}
           disabled={cards.length === 0}
-          accessibilityRole="button"
           accessibilityLabel="Next flashcard"
-        >
-          <Text style={styles.navButtonText}>Next</Text>
-        </TouchableOpacity>
+          title="Next"
+        />
       </View>
     </View>
   );
@@ -132,33 +131,33 @@ export const FlashcardsScreen: React.FC<FlashcardsScreenProps> = ({ onBack }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.lg,
     paddingTop: 40,
-    backgroundColor: '#1a1a2e',
-    borderBottomWidth: 1,
-    borderBottomColor: '#16213e',
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: PIXEL_BORDER,
+    borderBottomColor: COLORS.border,
   },
   backButton: {
-    padding: 8,
+    padding: SPACING.sm,
   },
   backButtonText: {
-    color: '#e94560',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: COLORS.accent,
+    fontSize: 14,
+    fontFamily: FONTS.pixelDisplay,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 13,
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.pixelDisplay,
   },
   shuffleButton: {
-    padding: 8,
+    padding: SPACING.sm,
     width: 50,
     alignItems: 'flex-end',
   },
@@ -167,68 +166,60 @@ const styles = StyleSheet.create({
   },
   filterBar: {
     flexGrow: 0,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#16213e',
+    borderBottomColor: COLORS.border,
   },
   filterBarContent: {
-    paddingHorizontal: 12,
+    paddingHorizontal: SPACING.md,
     paddingVertical: 10,
-    gap: 8,
+    gap: SPACING.sm,
   },
   filterChip: {
-    paddingHorizontal: 12,
+    paddingHorizontal: SPACING.md,
     paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#16213e',
-    marginRight: 8,
+    borderRadius: RADII.none,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginRight: SPACING.sm,
   },
   filterChipActive: {
-    backgroundColor: '#a855f7',
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
   },
   filterChipText: {
-    fontSize: 12,
-    color: '#a0a0a0',
-    fontWeight: '600',
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.pixelBody,
   },
   filterChipTextActive: {
-    color: '#ffffff',
+    color: COLORS.textOnAccent,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: SPACING.lg,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
   },
   progress: {
     textAlign: 'center',
-    color: '#a0a0a0',
-    fontSize: 13,
-    marginBottom: 12,
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontFamily: FONTS.pixelBody,
+    marginBottom: SPACING.md,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#1a1a2e',
-    borderTopWidth: 1,
-    borderTopColor: '#16213e',
-    gap: 12,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderTopWidth: PIXEL_BORDER,
+    borderTopColor: COLORS.border,
+    gap: SPACING.md,
   },
   navButton: {
     flex: 1,
-    backgroundColor: '#a855f7',
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  disabledButton: {
-    backgroundColor: '#16213e',
-  },
-  navButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

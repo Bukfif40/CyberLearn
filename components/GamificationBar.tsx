@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { GamificationService } from '../services/gamification';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface GamificationBarProps {
   xp: number;
@@ -40,12 +41,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f3460',
-    padding: 12,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 12,
-    gap: 12,
+    backgroundColor: COLORS.surface,
+    borderWidth: PIXEL_BORDER,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    borderRadius: RADII.none,
+    gap: SPACING.md,
   },
   levelSection: {
     alignItems: 'center',
@@ -53,39 +56,41 @@ const styles = StyleSheet.create({
   levelBadge: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e94560',
+    borderRadius: RADII.none,
+    backgroundColor: COLORS.accent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   levelText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: COLORS.textOnAccent,
+    fontSize: 16,
+    fontFamily: FONTS.pixelDisplay,
   },
   levelLabel: {
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     fontSize: 10,
-    marginTop: 2,
+    marginTop: SPACING.xs,
+    fontFamily: FONTS.pixelBody,
   },
   xpSection: {
     flex: 1,
   },
   xpBarContainer: {
-    height: 8,
-    backgroundColor: '#16213e',
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: COLORS.border,
+    borderRadius: RADII.none,
     overflow: 'hidden',
   },
   xpBar: {
     height: '100%',
-    backgroundColor: '#4ade80',
-    borderRadius: 4,
+    backgroundColor: COLORS.accent,
+    borderRadius: RADII.none,
   },
   xpText: {
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     fontSize: 12,
-    marginTop: 4,
+    marginTop: SPACING.xs,
+    fontFamily: FONTS.pixelBody,
   },
   streakSection: {
     flexDirection: 'row',
@@ -96,8 +101,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   streakText: {
-    color: '#ffffff',
+    color: COLORS.textPrimary,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: FONTS.pixelDisplay,
   },
 });

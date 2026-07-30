@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { QuizService } from '../services/quizService';
 import { QuizQuestion, DOMAIN_INFO, SecurityDomain } from '../types';
+import { PixelButton } from '../components/retro/PixelButton';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface PracticeExamScreenProps {
   onBack: () => void;
@@ -75,16 +77,16 @@ export const PracticeExamScreen: React.FC<PracticeExamScreenProps> = ({ onBack }
   };
 
   const getScoreColor = (accuracy: number): string => {
-    if (accuracy >= 75) return '#4ade80';
-    if (accuracy >= 60) return '#fbbf24';
-    return '#ef4444';
+    if (accuracy >= 75) return COLORS.accent;
+    if (accuracy >= 60) return COLORS.warning;
+    return COLORS.danger;
   };
 
   if (loading || questions.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#e94560" />
+          <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingText}>Assembling your practice exam...</Text>
         </View>
       </View>
@@ -119,7 +121,7 @@ export const PracticeExamScreen: React.FC<PracticeExamScreenProps> = ({ onBack }
             <Text style={[styles.scoreText, { color: getScoreColor(score) }]}>{score}%</Text>
           </View>
 
-          <Text style={[styles.passText, { color: passed ? '#4ade80' : '#ef4444' }]}>
+          <Text style={[styles.passText, { color: passed ? COLORS.accent : COLORS.danger }]}>
             {passed ? '✅ Likely Pass' : '❌ Needs More Study'}
           </Text>
           <Text style={styles.passHint}>
@@ -161,14 +163,12 @@ export const PracticeExamScreen: React.FC<PracticeExamScreenProps> = ({ onBack }
             </View>
           ))}
 
-          <TouchableOpacity
+          <PixelButton
             style={styles.retryButton}
             onPress={onBack}
-            accessibilityRole="button"
             accessibilityLabel="Return to home screen"
-          >
-            <Text style={styles.retryButtonText}>Return Home</Text>
-          </TouchableOpacity>
+            title="Return Home"
+          />
         </ScrollView>
       </View>
     );
@@ -198,22 +198,19 @@ export const PracticeExamScreen: React.FC<PracticeExamScreenProps> = ({ onBack }
             Submit exam now? {questions.length - answeredCount} question(s) unanswered.
           </Text>
           <View style={styles.confirmActions}>
-            <TouchableOpacity
-              style={styles.confirmCancel}
+            <PixelButton
+              style={styles.confirmButton}
+              variant="secondary"
               onPress={() => setConfirmSubmit(false)}
-              accessibilityRole="button"
               accessibilityLabel="Keep going, do not submit yet"
-            >
-              <Text style={styles.confirmCancelText}>Keep Going</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.confirmSubmitBtn}
+              title="Keep Going"
+            />
+            <PixelButton
+              style={styles.confirmButton}
               onPress={finishExam}
-              accessibilityRole="button"
               accessibilityLabel="Confirm submit exam"
-            >
-              <Text style={styles.confirmSubmitText}>Submit</Text>
-            </TouchableOpacity>
+              title="Submit"
+            />
           </View>
         </View>
       )}
@@ -281,34 +278,29 @@ export const PracticeExamScreen: React.FC<PracticeExamScreenProps> = ({ onBack }
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.navButton, currentIndex === 0 && styles.disabledButton]}
+        <PixelButton
+          style={styles.navButton}
+          variant="secondary"
           onPress={() => setCurrentIndex(i => Math.max(0, i - 1))}
           disabled={currentIndex === 0}
-          accessibilityRole="button"
           accessibilityLabel="Previous question"
-        >
-          <Text style={styles.navButtonText}>Previous</Text>
-        </TouchableOpacity>
+          title="Previous"
+        />
 
         {currentIndex === questions.length - 1 ? (
-          <TouchableOpacity
-            style={[styles.navButton, styles.submitButton]}
+          <PixelButton
+            style={styles.navButton}
             onPress={() => setConfirmSubmit(true)}
-            accessibilityRole="button"
             accessibilityLabel="Submit exam"
-          >
-            <Text style={styles.navButtonText}>Submit Exam</Text>
-          </TouchableOpacity>
+            title="Submit Exam"
+          />
         ) : (
-          <TouchableOpacity
+          <PixelButton
             style={styles.navButton}
             onPress={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))}
-            accessibilityRole="button"
             accessibilityLabel="Next question"
-          >
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
+            title="Next"
+          />
         )}
       </View>
     </View>
@@ -318,124 +310,107 @@ export const PracticeExamScreen: React.FC<PracticeExamScreenProps> = ({ onBack }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.lg,
     paddingTop: 40,
-    backgroundColor: '#1a1a2e',
-    borderBottomWidth: 1,
-    borderBottomColor: '#16213e',
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: PIXEL_BORDER,
+    borderBottomColor: COLORS.border,
   },
   backButton: {
-    padding: 8,
-    width: 60,
+    padding: SPACING.sm,
+    width: 64,
   },
   backButtonText: {
-    color: '#e94560',
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: COLORS.accent,
+    fontSize: 9,
+    fontFamily: FONTS.pixelDisplay,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 13,
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.pixelDisplay,
   },
   timerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 13,
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.pixelDisplay,
   },
   timerLow: {
-    color: '#ef4444',
+    color: COLORS.danger,
   },
   answeredCount: {
     width: 60,
     textAlign: 'right',
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     fontSize: 13,
+    fontFamily: FONTS.pixelBody,
   },
   confirmBanner: {
-    backgroundColor: '#0f3460',
-    padding: 14,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#16213e',
+    borderBottomColor: COLORS.border,
   },
   confirmText: {
-    color: '#ffffff',
-    fontSize: 13,
-    marginBottom: 10,
+    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontFamily: FONTS.pixelBody,
+    marginBottom: SPACING.md,
   },
   confirmActions: {
     flexDirection: 'row',
     gap: 10,
   },
-  confirmCancel: {
+  confirmButton: {
     flex: 1,
-    backgroundColor: '#16213e',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  confirmCancelText: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  confirmSubmitBtn: {
-    flex: 1,
-    backgroundColor: '#e94560',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  confirmSubmitText: {
-    color: '#ffffff',
-    fontWeight: '600',
   },
   navigatorBar: {
     flexGrow: 0,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#16213e',
+    borderBottomColor: COLORS.border,
   },
   navigatorContent: {
-    paddingHorizontal: 12,
+    paddingHorizontal: SPACING.md,
     paddingVertical: 10,
     gap: 6,
   },
   navDot: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#16213e',
+    borderRadius: RADII.none,
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 6,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: COLORS.border,
   },
   navDotAnswered: {
-    backgroundColor: '#0f3460',
+    backgroundColor: COLORS.surface,
   },
   navDotFlagged: {
-    borderColor: '#fbbf24',
+    borderColor: COLORS.warning,
   },
   navDotCurrent: {
-    borderColor: '#e94560',
+    borderColor: COLORS.accent,
   },
   navDotText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
+    color: COLORS.textPrimary,
+    fontSize: 11,
+    fontFamily: FONTS.pixelBody,
   },
   scrollView: {
     flex: 1,
   },
   questionContent: {
-    padding: 16,
+    padding: SPACING.lg,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center',
@@ -446,92 +421,78 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   domainTag: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#a855f7',
+    fontSize: 11,
+    color: COLORS.accent,
     textTransform: 'uppercase',
+    fontFamily: FONTS.pixelDisplay,
   },
   flagButton: {
     fontSize: 13,
-    color: '#fbbf24',
-    fontWeight: '600',
+    color: COLORS.warning,
+    fontFamily: FONTS.pixelBody,
   },
   questionText: {
-    fontSize: 12,
-    color: '#a0a0a0',
-    marginTop: 12,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.md,
+    fontFamily: FONTS.pixelBody,
   },
   question: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 16,
+    fontSize: 18,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.lg,
     marginTop: 4,
     lineHeight: 24,
+    fontFamily: FONTS.pixelBody,
   },
   optionsContainer: {
-    gap: 8,
+    gap: SPACING.sm,
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: RADII.none,
     borderWidth: 2,
-    borderColor: '#16213e',
+    borderColor: COLORS.border,
   },
   selectedOption: {
-    borderColor: '#e94560',
-    backgroundColor: '#e9456020',
+    borderColor: COLORS.accent,
+    backgroundColor: 'rgba(57, 255, 20, 0.12)',
   },
   optionLetter: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: '#0f3460',
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    borderRadius: RADII.none,
+    backgroundColor: COLORS.background,
+    color: COLORS.textPrimary,
+    fontSize: 11,
     textAlign: 'center',
     lineHeight: 24,
-    marginRight: 12,
+    marginRight: SPACING.md,
+    fontFamily: FONTS.pixelDisplay,
   },
   optionText: {
     flex: 1,
-    fontSize: 14,
-    color: '#d0d0d0',
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.pixelBody,
   },
   selectedOptionText: {
-    color: '#e94560',
-    fontWeight: '600',
+    color: COLORS.accent,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#1a1a2e',
-    borderTopWidth: 1,
-    borderTopColor: '#16213e',
-    gap: 12,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderTopWidth: PIXEL_BORDER,
+    borderTopColor: COLORS.border,
+    gap: SPACING.md,
   },
   navButton: {
     flex: 1,
-    backgroundColor: '#e94560',
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  submitButton: {
-    backgroundColor: '#4ade80',
-  },
-  disabledButton: {
-    backgroundColor: '#16213e',
-  },
-  navButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
@@ -539,75 +500,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    color: '#a0a0a0',
+    marginTop: SPACING.md,
+    color: COLORS.textSecondary,
     fontSize: 16,
+    fontFamily: FONTS.pixelBody,
   },
   scoreCircle: {
     width: 120,
     height: 120,
-    borderRadius: 60,
+    borderRadius: RADII.none,
     borderWidth: 4,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginVertical: 24,
+    marginVertical: SPACING.xl,
   },
   scoreText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontFamily: FONTS.pixelDisplay,
   },
   passText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
     textAlign: 'center',
+    fontFamily: FONTS.pixelDisplay,
   },
   passHint: {
-    fontSize: 12,
-    color: '#a0a0a0',
+    fontSize: 13,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    paddingHorizontal: 24,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    fontFamily: FONTS.pixelBody,
   },
   resultsContent: {
-    padding: 16,
+    padding: SPACING.lg,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 16,
-    paddingVertical: 16,
+    marginVertical: SPACING.lg,
+    paddingVertical: SPACING.lg,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#16213e',
+    borderColor: COLORS.border,
   },
   stat: {
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4ade80',
+    fontSize: 20,
+    color: COLORS.accent,
+    fontFamily: FONTS.pixelDisplay,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#a0a0a0',
-    marginTop: 4,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
+    fontFamily: FONTS.pixelBody,
   },
   domainTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#bbb',
-    marginTop: 24,
-    marginBottom: 12,
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.md,
     textTransform: 'uppercase',
+    fontFamily: FONTS.pixelDisplay,
   },
   domainBreakdownItem: {
-    backgroundColor: '#1a1a2e',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    borderRadius: RADII.none,
+    marginBottom: SPACING.sm,
   },
   domainBreakdownHeader: {
     flexDirection: 'row',
@@ -616,28 +582,20 @@ const styles = StyleSheet.create({
   },
   domainBreakdownName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.pixelBody,
   },
   domainBreakdownAccuracy: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: FONTS.pixelDisplay,
   },
   domainBreakdownStats: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.pixelBody,
   },
   retryButton: {
-    backgroundColor: '#4ade80',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  retryButtonText: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: 'bold',
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
 });

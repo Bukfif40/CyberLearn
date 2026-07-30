@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   modeCardTitle: {
-    fontSize: 10,
+    fontSize: 8,
     color: COLORS.textPrimary,
     marginBottom: 6,
     fontFamily: FONTS.pixelDisplay,

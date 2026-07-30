@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { QuizQuestion } from '../types';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface QuizQuestionCardProps {
   question: QuizQuestion;
@@ -92,115 +93,119 @@ export const QuizQuestionCard: React.FC<QuizQuestionCardProps> = ({
 
 const getDifficultyColor = (difficulty: string) => {
   switch (difficulty) {
-    case 'easy': return '#4ade80';
-    case 'medium': return '#fbbf24';
-    case 'hard': return '#ef4444';
-    default: return '#a0a0a0';
+    case 'easy': return COLORS.accent;
+    case 'medium': return COLORS.warning;
+    case 'hard': return COLORS.danger;
+    default: return COLORS.textSecondary;
   }
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.none,
+    borderWidth: PIXEL_BORDER,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginVertical: SPACING.sm,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   difficultyBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: RADII.none,
   },
   difficultyText: {
-    color: '#000000',
-    fontSize: 10,
-    fontWeight: 'bold',
+    color: COLORS.textOnAccent,
+    fontSize: 9,
+    fontFamily: FONTS.pixelDisplay,
   },
   category: {
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     fontSize: 12,
+    fontFamily: FONTS.pixelBody,
   },
   question: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 16,
+    fontSize: 18,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.lg,
     lineHeight: 24,
+    fontFamily: FONTS.pixelBody,
   },
   optionsContainer: {
-    gap: 8,
+    gap: SPACING.sm,
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16213e',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    padding: SPACING.md,
+    borderRadius: RADII.none,
     borderWidth: 2,
-    borderColor: '#16213e',
+    borderColor: COLORS.border,
   },
   selectedOption: {
-    borderColor: '#e94560',
-    backgroundColor: '#e9456020',
+    borderColor: COLORS.accent,
+    backgroundColor: 'rgba(57, 255, 20, 0.12)',
   },
   correctOption: {
-    borderColor: '#4ade80',
-    backgroundColor: '#4ade8020',
+    borderColor: COLORS.accent,
+    backgroundColor: 'rgba(57, 255, 20, 0.12)',
   },
   incorrectOption: {
-    borderColor: '#ef4444',
-    backgroundColor: '#ef444420',
+    borderColor: COLORS.danger,
+    backgroundColor: 'rgba(255, 59, 59, 0.12)',
   },
   optionLetter: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: '#0f3460',
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    borderRadius: RADII.none,
+    backgroundColor: COLORS.surface,
+    color: COLORS.textPrimary,
+    fontSize: 11,
     textAlign: 'center',
     lineHeight: 24,
-    marginRight: 12,
+    marginRight: SPACING.md,
+    fontFamily: FONTS.pixelDisplay,
   },
   optionText: {
     flex: 1,
-    fontSize: 14,
-    color: '#d0d0d0',
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.pixelBody,
   },
   selectedOptionText: {
-    color: '#e94560',
-    fontWeight: '600',
+    color: COLORS.accent,
   },
   correctOptionText: {
-    color: '#4ade80',
-    fontWeight: '600',
+    color: COLORS.accent,
   },
   incorrectOptionText: {
-    color: '#ef4444',
-    fontWeight: '600',
+    color: COLORS.danger,
   },
   explanationContainer: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#0f3460',
-    borderRadius: 8,
+    marginTop: SPACING.lg,
+    padding: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderRadius: RADII.none,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   explanationTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 13,
+    color: COLORS.textPrimary,
     marginBottom: 4,
+    fontFamily: FONTS.pixelDisplay,
   },
   explanation: {
-    fontSize: 13,
-    color: '#d0d0d0',
+    fontSize: 15,
+    color: COLORS.textSecondary,
     lineHeight: 20,
+    fontFamily: FONTS.pixelBody,
   },
 });
