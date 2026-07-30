@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserPreferences, QuestionStats, GamificationData, QuizResult, StudySession, StudyGoal } from '../types';
+import { UserPreferences, QuestionStats, GamificationData, QuizResult, StudySession, StudyGoal, ModuleProgress } from '../types';
 
 const KEYS = {
   USER_PREFERENCES: '@cyberlearn_user_preferences',
   QUESTION_STATS: '@cyberlearn_question_stats',
   GAMIFICATION: '@cyberlearn_gamification',
+  MODULE_PROGRESS: '@cyberlearn_module_progress',
 };
 
 export class StorageService {
@@ -67,6 +68,38 @@ export class StorageService {
       await AsyncStorage.setItem(KEYS.QUESTION_STATS, JSON.stringify(all));
     } catch (error) {
       console.error('Error saving question stats:', error);
+    }
+  }
+
+  // ===== Learning Module Progress =====
+
+  static async getAllModuleProgress(): Promise<Record<string, ModuleProgress>> {
+    try {
+      const data = await AsyncStorage.getItem(KEYS.MODULE_PROGRESS);
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      console.error('Error getting module progress:', error);
+      return {};
+    }
+  }
+
+  static async getModuleProgress(moduleId: string): Promise<ModuleProgress | null> {
+    try {
+      const all = await this.getAllModuleProgress();
+      return all[moduleId] || null;
+    } catch (error) {
+      console.error('Error getting module progress:', error);
+      return null;
+    }
+  }
+
+  static async saveModuleProgress(moduleId: string, progress: ModuleProgress): Promise<void> {
+    try {
+      const all = await this.getAllModuleProgress();
+      all[moduleId] = progress;
+      await AsyncStorage.setItem(KEYS.MODULE_PROGRESS, JSON.stringify(all));
+    } catch (error) {
+      console.error('Error saving module progress:', error);
     }
   }
 

@@ -146,3 +146,48 @@ export interface UserPreferences {
   studyGoals: StudyGoal[];
   activeSession: StudySession | null;
 }
+
+// Learning Modules: structured lesson content, distinct from the
+// flashcard/quiz-only formats above.
+export interface LessonSection {
+  id: string;
+  heading: string;
+  body: string;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  summary: string;
+  sections: LessonSection[];
+  checkpointQuestionIds?: string[]; // ids into QUIZ_QUESTIONS
+  estimatedMinutes: number;
+}
+
+export interface LearningModule {
+  id: string;
+  domain: SecurityDomain;
+  title: string;
+  description: string;
+  icon: string;
+  lessons: Lesson[];
+  bossBattle: {
+    domain: SecurityDomain;
+    questionCount: number;
+    passThreshold: number; // percentage
+  };
+}
+
+export interface LessonProgress {
+  lessonId: string;
+  completedAt: string | null; // ISO string
+}
+
+export interface ModuleProgress {
+  moduleId: string;
+  startedAt: string | null; // ISO string
+  lessons: Record<string, LessonProgress>;
+  bossBattleBestScore: number | null;
+  bossBattlePassed: boolean;
+  completedAt: string | null; // ISO string
+}

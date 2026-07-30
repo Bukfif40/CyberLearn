@@ -58,6 +58,14 @@ const ACHIEVEMENTS: Achievement[] = [
     unlockedAt: null,
     rarity: 'rare',
   },
+  {
+    id: 'module_master',
+    title: 'Module Master',
+    description: 'Complete your first Learning Module',
+    icon: '🎓',
+    unlockedAt: null,
+    rarity: 'rare',
+  },
 ];
 
 export class GamificationService {

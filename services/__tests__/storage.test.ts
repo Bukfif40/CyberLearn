@@ -63,6 +63,29 @@ describe('question stats', () => {
   });
 });
 
+describe('module progress', () => {
+  it('returns null for a module with no stored progress', async () => {
+    expect(await StorageService.getModuleProgress('m999')).toBeNull();
+  });
+
+  it('round-trips saved module progress', async () => {
+    const progress = {
+      moduleId: 'threats-vulnerabilities-mitigations',
+      startedAt: '2026-01-01T00:00:00.000Z',
+      lessons: { 'threat-actors-attack-surface': { lessonId: 'threat-actors-attack-surface', completedAt: '2026-01-01T00:05:00.000Z' } },
+      bossBattleBestScore: 80,
+      bossBattlePassed: true,
+      completedAt: '2026-01-01T00:10:00.000Z',
+    };
+    await StorageService.saveModuleProgress('threats-vulnerabilities-mitigations', progress);
+
+    expect(await StorageService.getModuleProgress('threats-vulnerabilities-mitigations')).toEqual(progress);
+
+    const all = await StorageService.getAllModuleProgress();
+    expect(Object.keys(all)).toEqual(['threats-vulnerabilities-mitigations']);
+  });
+});
+
 describe('gamification data', () => {
   it('returns null when nothing is stored', async () => {
     expect(await StorageService.getGamificationRaw()).toBeNull();
