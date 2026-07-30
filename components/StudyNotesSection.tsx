@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { DOMAIN_INFO, SecurityDomain } from '../types';
 import { STUDY_NOTES } from '../data/studyNotes';
-import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 const DOMAIN_ORDER: SecurityDomain[] = [
   'general_security_concepts',
@@ -62,8 +62,8 @@ export const StudyNotesSection: React.FC = () => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: RADII.lg,
-    borderWidth: 1,
+    borderRadius: RADII.none,
+    borderWidth: PIXEL_BORDER,
     borderColor: COLORS.border,
     padding: SPACING.lg,
     marginBottom: SPACING.md,
@@ -84,28 +84,27 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 12,
     color: COLORS.textPrimary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelDisplay,
     flex: 1,
   },
   freeTag: {
-    backgroundColor: 'rgba(0, 217, 232, 0.15)',
+    backgroundColor: 'rgba(57, 255, 20, 0.15)',
     color: COLORS.accent,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
-    borderRadius: RADII.sm,
+    borderRadius: RADII.none,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FONTS.pixelDisplay,
     overflow: 'hidden',
   },
   description: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textSecondary,
     marginBottom: SPACING.md,
-    fontFamily: FONTS.sans,
-    lineHeight: 17,
+    fontFamily: FONTS.pixelBody,
+    lineHeight: 18,
   },
   domainBlock: {
     borderTopWidth: 1,
@@ -122,10 +121,9 @@ const styles = StyleSheet.create({
   },
   domainTitle: {
     flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
     color: COLORS.textPrimary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
   },
   domainWeight: {
     fontSize: 12,
@@ -140,9 +138,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   noteText: {
-    fontSize: 13,
+    fontSize: 15,
     color: COLORS.textSecondary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
     lineHeight: 20,
     marginTop: SPACING.sm,
     paddingLeft: SPACING.lg + 8,

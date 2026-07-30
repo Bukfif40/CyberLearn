@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { StudyResource } from '../types';
-import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface Props {
   resource: StudyResource;
@@ -63,8 +63,8 @@ export const StudyResourceCard: React.FC<Props> = ({ resource }) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: RADII.md,
-    borderWidth: 1,
+    borderRadius: RADII.none,
+    borderWidth: PIXEL_BORDER,
     borderColor: COLORS.border,
     padding: 14,
     marginBottom: SPACING.sm,
@@ -88,43 +88,41 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   title: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
     color: COLORS.textPrimary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
     flex: 1,
   },
   freeTag: {
-    backgroundColor: 'rgba(0, 217, 232, 0.15)',
+    backgroundColor: 'rgba(57, 255, 20, 0.15)',
     color: COLORS.accent,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
-    borderRadius: RADII.sm,
-    fontSize: 11,
-    fontWeight: '700',
+    borderRadius: RADII.none,
+    fontSize: 10,
+    fontFamily: FONTS.pixelDisplay,
     overflow: 'hidden',
   },
   paidTag: {
-    backgroundColor: 'rgba(255, 159, 28, 0.15)',
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
     color: COLORS.warning,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
-    borderRadius: RADII.sm,
-    fontSize: 11,
-    fontWeight: '700',
+    borderRadius: RADII.none,
+    fontSize: 10,
+    fontFamily: FONTS.pixelDisplay,
     overflow: 'hidden',
   },
   description: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textSecondary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
     marginBottom: SPACING.sm,
-    lineHeight: 16,
+    lineHeight: 17,
   },
   cta: {
-    fontSize: 11,
+    fontSize: 13,
     color: COLORS.accent,
-    fontFamily: FONTS.sans,
-    fontWeight: '600',
+    fontFamily: FONTS.pixelBody,
   },
 });

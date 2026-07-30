@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 const STEPS: string[] = [
   'Get a hypervisor. Install a free virtualization tool — VirtualBox or VMware Workstation Player — so you can run virtual machines without touching your real operating system.',
@@ -41,8 +41,8 @@ export const LabGuide: React.FC = () => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: RADII.lg,
-    borderWidth: 1,
+    borderRadius: RADII.none,
+    borderWidth: PIXEL_BORDER,
     borderColor: COLORS.border,
     padding: SPACING.lg,
     marginBottom: SPACING.md,
@@ -63,27 +63,26 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 12,
     color: COLORS.textPrimary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelDisplay,
     flex: 1,
   },
   freeTag: {
-    backgroundColor: 'rgba(0, 217, 232, 0.15)',
+    backgroundColor: 'rgba(57, 255, 20, 0.15)',
     color: COLORS.accent,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
-    borderRadius: RADII.sm,
+    borderRadius: RADII.none,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FONTS.pixelDisplay,
     overflow: 'hidden',
   },
   intro: {
-    fontSize: 13,
+    fontSize: 15,
     color: COLORS.textSecondary,
-    fontFamily: FONTS.sans,
-    lineHeight: 19,
+    fontFamily: FONTS.pixelBody,
+    lineHeight: 20,
     marginBottom: SPACING.md,
   },
   stepRow: {
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
   stepNumberWrap: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: RADII.none,
     borderWidth: 1,
     borderColor: COLORS.accent,
     justifyContent: 'center',
@@ -110,9 +109,9 @@ const styles = StyleSheet.create({
   },
   stepText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 15,
     color: COLORS.textSecondary,
-    fontFamily: FONTS.sans,
-    lineHeight: 19,
+    fontFamily: FONTS.pixelBody,
+    lineHeight: 20,
   },
 });

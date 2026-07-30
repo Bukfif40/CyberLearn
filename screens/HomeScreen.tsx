@@ -18,7 +18,7 @@ import { GamificationService } from '../services/gamification';
 import { QuizService } from '../services/quizService';
 import { GamificationData, DomainReadiness as DomainReadinessType } from '../types';
 import { FREE_STUDY_RESOURCES, PAID_STUDY_RESOURCES } from '../data/studyResources';
-import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
+import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme';
 
 interface HomeScreenProps {
   onQuizPress?: () => void;
@@ -226,23 +226,22 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.lg,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 22,
     color: COLORS.accent,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelDisplay,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.textSecondary,
-    marginTop: 4,
-    fontFamily: FONTS.sans,
+    marginTop: 6,
+    fontFamily: FONTS.pixelBody,
   },
   adaptiveQuizButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: RADII.lg,
-    borderWidth: 1,
+    borderRadius: RADII.none,
+    borderWidth: PIXEL_BORDER,
     borderColor: COLORS.accent,
     padding: SPACING.lg,
     marginHorizontal: SPACING.lg,
@@ -256,16 +255,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   adaptiveQuizButtonTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 13,
     color: COLORS.textPrimary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelDisplay,
   },
   adaptiveQuizButtonSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textSecondary,
-    marginTop: 2,
-    fontFamily: FONTS.sans,
+    marginTop: 6,
+    fontFamily: FONTS.pixelBody,
   },
   adaptiveQuizButtonArrow: {
     fontSize: 20,
@@ -284,9 +282,9 @@ const styles = StyleSheet.create({
     flexBasis: '30%',
     minWidth: 100,
     backgroundColor: COLORS.surface,
-    borderRadius: RADII.lg,
+    borderRadius: RADII.none,
     padding: SPACING.md,
-    borderWidth: 1,
+    borderWidth: PIXEL_BORDER,
     borderColor: COLORS.border,
   },
   modeCardDisabled: {
@@ -297,16 +295,15 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   modeCardTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 10,
     color: COLORS.textPrimary,
-    marginBottom: 2,
-    fontFamily: FONTS.sans,
+    marginBottom: 6,
+    fontFamily: FONTS.pixelDisplay,
   },
   modeCardSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
   },
   resourcesSection: {
     paddingHorizontal: SPACING.lg,
@@ -318,17 +315,16 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   resourcesTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
     color: COLORS.textPrimary,
-    marginBottom: 4,
-    fontFamily: FONTS.sans,
+    marginBottom: 6,
+    fontFamily: FONTS.pixelDisplay,
   },
   resourcesSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textSecondary,
     marginBottom: SPACING.md,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -339,6 +335,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: COLORS.textSecondary,
     fontSize: 16,
-    fontFamily: FONTS.sans,
+    fontFamily: FONTS.pixelBody,
   },
 });
