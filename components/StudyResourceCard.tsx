@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { StudyResource } from '../types';
+import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
 
 interface Props {
   resource: StudyResource;
@@ -17,6 +18,8 @@ export const StudyResourceCard: React.FC<Props> = ({ resource }) => {
         return '🏛️';
       case 'practice_exam':
         return '📝';
+      case 'guide':
+        return '🎓';
       default:
         return '📖';
     }
@@ -35,16 +38,20 @@ export const StudyResourceCard: React.FC<Props> = ({ resource }) => {
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, !resource.free && styles.cardPaid]}
       onPress={handlePress}
       accessibilityRole="link"
-      accessibilityLabel={`Open resource: ${resource.title}`}
+      accessibilityLabel={`Open resource: ${resource.title}${resource.free ? '' : ', paid'}`}
     >
       <View style={styles.header}>
         <Text style={styles.icon}>{getResourceIcon(resource.type)}</Text>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{resource.title}</Text>
-          {resource.free && <Text style={styles.freeTag}>Free</Text>}
+          {resource.free ? (
+            <Text style={styles.freeTag}>Free</Text>
+          ) : (
+            <Text style={styles.paidTag}>Paid</Text>
+          )}
         </View>
       </View>
       <Text style={styles.description}>{resource.description}</Text>
@@ -55,52 +62,69 @@ export const StudyResourceCard: React.FC<Props> = ({ resource }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2a2a2a',
-    borderRadius: 8,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     padding: 14,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#e94560',
+    marginBottom: SPACING.sm,
+  },
+  cardPaid: {
+    borderColor: COLORS.warning,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   icon: {
     fontSize: 24,
-    marginRight: 12,
+    marginRight: SPACING.md,
   },
   titleContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.sm,
   },
   title: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.sans,
     flex: 1,
   },
   freeTag: {
-    backgroundColor: '#22c55e',
-    color: '#fff',
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(0, 217, 232, 0.15)',
+    color: COLORS.accent,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: RADII.sm,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    overflow: 'hidden',
+  },
+  paidTag: {
+    backgroundColor: 'rgba(255, 159, 28, 0.15)',
+    color: COLORS.warning,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: RADII.sm,
+    fontSize: 11,
+    fontWeight: '700',
+    overflow: 'hidden',
   },
   description: {
     fontSize: 12,
-    color: '#ccc',
-    marginBottom: 8,
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.sans,
+    marginBottom: SPACING.sm,
     lineHeight: 16,
   },
   cta: {
     fontSize: 11,
-    color: '#e94560',
+    color: COLORS.accent,
+    fontFamily: FONTS.sans,
     fontWeight: '600',
   },
 });

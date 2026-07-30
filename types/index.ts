@@ -82,7 +82,7 @@ export interface DomainReadiness {
 }
 
 // Study resources
-export type ResourceType = 'video' | 'reading' | 'official' | 'practice_exam';
+export type ResourceType = 'video' | 'reading' | 'official' | 'practice_exam' | 'guide';
 
 export interface StudyResource {
   id: string;

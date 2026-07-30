@@ -1,15 +1,7 @@
 import { StudyResource } from '../types';
 
-export const STUDY_RESOURCES: StudyResource[] = [
-  {
-    id: 'comptia_official',
-    title: 'CompTIA Security+ Official Exam Objectives',
-    type: 'official',
-    domain: 'all',
-    url: 'https://assets.ctfassets.net/82ripq7fjls2/6TYWUym0Nudqa8nGEnegjG/0f9b974d3b1837fe85ab8e6553f4d623/CompTIA-Security-Plus-SY0-701-Exam-Objectives.pdf',
-    description: 'The direct PDF blueprint — every domain, weighting, and sub-objective the real exam tests. Skip CompTIA\'s sales page, this goes straight to the document.',
-    free: true,
-  },
+// Free & Open — no cost, no account required.
+export const FREE_STUDY_RESOURCES: StudyResource[] = [
   {
     id: 'professor_messer_course',
     title: 'Professor Messer Security+ SY0-701 Video Course',
@@ -74,3 +66,20 @@ export const STUDY_RESOURCES: StudyResource[] = [
     free: true,
   },
 ];
+
+// The Armory — paid resources, clearly tagged, link only (no reproduced content).
+export const PAID_STUDY_RESOURCES: StudyResource[] = [
+  {
+    id: 'gibson_get_certified_get_ahead',
+    title: 'Security+ Get Certified Get Ahead (Darril Gibson)',
+    type: 'guide',
+    domain: 'all',
+    url: 'https://www.getcertifiedgetahead.com/',
+    description:
+      'Widely recommended SY0-701 study guide by Darril Gibson, with practice questions and plain-language explanations for every domain.',
+    free: false,
+  },
+];
+
+// Combined list, kept for any code that still wants "all resources" in one array.
+export const STUDY_RESOURCES: StudyResource[] = [...FREE_STUDY_RESOURCES, ...PAID_STUDY_RESOURCES];

@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Linking, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Linking, TouchableOpacity, Animated, AccessibilityInfo } from 'react-native';
 import { DomainReadiness as DomainReadinessType, DOMAIN_INFO, SecurityDomain } from '../types';
+import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
 
 interface Props {
   domainReadiness: DomainReadinessType[];
@@ -8,6 +9,7 @@ interface Props {
 }
 
 type Phase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type NodeState = 'mastered' | 'review' | 'untouched';
 
 const DOMAIN_ORDER: SecurityDomain[] = [
   'general_security_concepts',
@@ -17,13 +19,63 @@ const DOMAIN_ORDER: SecurityDomain[] = [
   'security_program_management',
 ];
 
+const STATE_COLOR: Record<NodeState, string> = {
+  mastered: COLORS.accent,
+  review: COLORS.warning,
+  untouched: COLORS.textSecondary,
+};
+
+const getNodeState = (accuracy: number, questionsAnswered: number): NodeState => {
+  if (questionsAnswered === 0) return 'untouched';
+  if (accuracy >= 80) return 'mastered';
+  return 'review'; // attempted, but not yet mastered — actively due for review
+};
+
+interface PhaseNodeProps {
+  color: string;
+  state: NodeState;
+  reduceMotion: boolean;
+}
+
+// Encapsulates the per-node "lit up" treatment: a steady glow when mastered,
+// a gentle pulse when actively due for review (skipped under reduced motion).
+const PhaseNode: React.FC<PhaseNodeProps> = ({ color, state, reduceMotion }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (state !== 'review' || reduceMotion) {
+      pulse.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 0.45, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [state, reduceMotion, pulse]);
+
+  return (
+    <View style={styles.dotWrap}>
+      {state === 'mastered' && <View style={[styles.dotGlow, { backgroundColor: color }]} />}
+      <Animated.View
+        style={[
+          styles.dot,
+          { borderColor: color, opacity: state === 'review' ? pulse : 1 },
+        ]}
+      />
+    </View>
+  );
+};
+
 export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadiness }) => {
-  // Determine phase colors based on readiness accuracy
-  const getPhaseColor = (accuracy: number): string => {
-    if (accuracy >= 80) return '#4ade80'; // success green
-    if (accuracy >= 40) return '#fbbf24'; // warning yellow
-    return '#6b7280'; // gray for not started
-  };
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled?.().then(setReduceMotion).catch(() => {});
+  }, []);
 
   const getDomainReadinessData = (domain: SecurityDomain): DomainReadinessType | undefined => {
     return domainReadiness.find(dr => dr.domain === domain);
@@ -36,6 +88,7 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
       title: string;
       description: string;
       color: string;
+      state: NodeState;
       domain?: SecurityDomain;
       stats?: { accuracy: number; questionsAnswered: number; totalQuestions: number };
       linkLabel?: string;
@@ -47,7 +100,8 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
       number: 0,
       title: 'Before You Start',
       description: 'Refresh basic networking, OS fundamentals, and security mindset if needed.',
-      color: '#6b7280',
+      color: STATE_COLOR.untouched,
+      state: 'untouched',
     });
 
     // Phases 1-5: Exam domains
@@ -55,29 +109,33 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
       const readinessData = getDomainReadinessData(domain);
       const phaseNumber = (index + 1) as Phase;
       const accuracy = readinessData?.accuracy ?? 0;
-      const color = getPhaseColor(accuracy);
+      const questionsAnswered = readinessData?.questionsAnswered ?? 0;
+      const state = getNodeState(accuracy, questionsAnswered);
 
       phaseData.push({
         number: phaseNumber,
         title: DOMAIN_INFO[domain].title,
         description: `Master domain concepts and practice questions.`,
-        color,
+        color: STATE_COLOR[state],
+        state,
         domain,
         stats: {
           accuracy,
-          questionsAnswered: readinessData?.questionsAnswered ?? 0,
+          questionsAnswered,
           totalQuestions: readinessData?.totalQuestions ?? 0,
         },
       });
     });
 
     // Phase 6: Sit the Exam
+    const examState: NodeState = overallReadiness >= 80 ? 'mastered' : 'untouched';
     phaseData.push({
       number: 6,
       title: 'Sit the Exam',
       description:
         'When your overall readiness consistently reaches 80%+, schedule and take the official CompTIA Security+ exam.',
-      color: overallReadiness >= 80 ? '#4ade80' : '#6b7280',
+      color: STATE_COLOR[examState],
+      state: examState,
     });
 
     // Phase 7: Beyond Security+
@@ -85,7 +143,8 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
       number: 7,
       title: 'Beyond Security+',
       description: 'Branch into specialized roles and expand your expertise.',
-      color: '#9333ea', // purple for future path
+      color: COLORS.accent,
+      state: 'untouched',
       linkLabel: 'Explore with roadmap.sh',
       linkUrl: 'https://roadmap.sh/cyber-security',
     });
@@ -111,30 +170,20 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
         Progress through Security+ domains, then explore advanced specializations
       </Text>
 
-      {/* Timeline */}
+      {/* Network map */}
       <View style={styles.timeline}>
         {phases.map((phase, index) => (
           <View key={phase.number}>
             {/* Phase Node */}
             <View style={styles.phaseRow}>
-              {/* Dot and connecting line */}
+              {/* Node and connecting line */}
               <View style={styles.dotColumn}>
-                <View
-                  style={[
-                    styles.dot,
-                    {
-                      backgroundColor: phase.color,
-                      borderColor: phase.color,
-                    },
-                  ]}
-                />
+                <PhaseNode color={phase.color} state={phase.state} reduceMotion={reduceMotion} />
                 {index < phases.length - 1 && (
                   <View
                     style={[
                       styles.line,
-                      {
-                        backgroundColor: phases[index + 1].color,
-                      },
+                      { backgroundColor: phases[index + 1].color },
                     ]}
                   />
                 )}
@@ -194,7 +243,7 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
               {
                 width: `${overallReadiness}%`,
                 backgroundColor:
-                  overallReadiness >= 80 ? '#4ade80' : overallReadiness >= 40 ? '#fbbf24' : '#6b7280',
+                  overallReadiness >= 80 ? COLORS.accent : overallReadiness > 0 ? COLORS.warning : COLORS.textSecondary,
               },
             ]}
           />
@@ -205,26 +254,32 @@ export const LearningPath: React.FC<Props> = ({ domainReadiness, overallReadines
   );
 };
 
+const NODE_SIZE = 22;
+
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: '#1a1a2e',
-    borderRadius: 12,
-    marginVertical: 12,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginVertical: SPACING.md,
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#fff',
+    color: COLORS.textPrimary,
     marginBottom: 4,
+    fontFamily: FONTS.sans,
   },
   subtitle: {
     fontSize: 12,
-    color: '#999',
-    marginBottom: 20,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xl,
+    fontFamily: FONTS.sans,
   },
   timeline: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   phaseRow: {
     flexDirection: 'row',
@@ -232,60 +287,81 @@ const styles = StyleSheet.create({
   },
   dotColumn: {
     alignItems: 'center',
-    marginRight: 16,
-    minWidth: 40,
+    marginRight: SPACING.lg,
+    minWidth: 36,
+  },
+  dotWrap: {
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotGlow: {
+    position: 'absolute',
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    opacity: 0.35,
+    // subtle diffuse glow behind the mastered node; a real box-shadow on web, ignored on native
+    shadowColor: COLORS.accent,
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
   },
   dot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 3,
-    backgroundColor: '#6b7280',
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    borderWidth: 2,
+    backgroundColor: COLORS.background,
   },
   line: {
-    width: 3,
+    width: 2,
     flex: 1,
-    backgroundColor: '#6b7280',
-    marginTop: -8,
+    backgroundColor: COLORS.border,
+    marginTop: -6,
     marginBottom: 0,
   },
   phaseContent: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    backgroundColor: '#0a0a1a',
-    borderRadius: 8,
-    marginBottom: 8,
-    borderLeftWidth: 2,
-    borderLeftColor: '#333',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderRadius: RADII.md,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   phaseHeader: {
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   phaseNumber: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#999',
+    color: COLORS.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
+    fontFamily: FONTS.mono,
   },
   phaseTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#fff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.sans,
   },
   phaseDescription: {
     fontSize: 13,
-    color: '#bbb',
+    color: COLORS.textSecondary,
     lineHeight: 18,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
+    fontFamily: FONTS.sans,
   },
   statsContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 6,
-    padding: 8,
-    marginBottom: 8,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.sm,
+    padding: SPACING.sm,
+    marginBottom: SPACING.sm,
   },
   statRow: {
     flexDirection: 'row',
@@ -294,48 +370,52 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#999',
+    color: COLORS.textSecondary,
     fontWeight: '500',
+    fontFamily: FONTS.sans,
   },
   statValue: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#fff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.mono,
   },
   linkButton: {
-    backgroundColor: 'rgba(147, 51, 234, 0.2)',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 217, 232, 0.12)',
+    borderRadius: RADII.sm,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
     alignSelf: 'flex-start',
   },
   linkButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#c084fc',
+    color: COLORS.accent,
+    fontFamily: FONTS.sans,
   },
   summarySection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    marginTop: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: RADII.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    marginTop: SPACING.md,
   },
   summaryLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#999',
+    color: COLORS.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
+    fontFamily: FONTS.sans,
   },
   readinessBar: {
     height: 8,
-    backgroundColor: '#333',
+    backgroundColor: COLORS.border,
     borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   readinessBarFill: {
     height: '100%',
@@ -343,7 +423,8 @@ const styles = StyleSheet.create({
   },
   readinessText: {
     fontSize: 13,
-    color: '#bbb',
+    color: COLORS.textSecondary,
     fontWeight: '500',
+    fontFamily: FONTS.sans,
   },
 });

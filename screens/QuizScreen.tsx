@@ -10,6 +10,7 @@ import {
 import { QuizQuestionCard } from '../components/QuizQuestionCard';
 import { QuizService } from '../services/quizService';
 import { QuizQuestion, DOMAIN_INFO, SecurityDomain } from '../types';
+import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
 
 interface QuizScreenProps {
   onBack: () => void;
@@ -75,9 +76,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
   };
 
   const getScoreColor = (accuracy: number): string => {
-    if (accuracy >= 80) return '#4ade80';
-    if (accuracy >= 60) return '#fbbf24';
-    return '#ef4444';
+    if (accuracy >= 80) return COLORS.accent;
+    if (accuracy >= 60) return COLORS.warning;
+    return COLORS.danger;
   };
 
   if (loading) {
@@ -96,7 +97,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
           <View style={{ width: 50 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#e94560" />
+          <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingText}>
             {mode === 'mistakes' ? 'Gathering questions you missed...' : 'Preparing your adaptive quiz...'}
           </Text>
@@ -225,12 +226,16 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={onBack}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
@@ -239,8 +244,14 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
         <View style={{ width: 50 }} />
       </View>
 
-      <View style={styles.progressBarContainer}>
-        <View style={[styles.progressBar, { width: `${progress}%` }]} />
+      {/* Segmented scan-line progress: one tick per question, filled left to right */}
+      <View style={styles.scanLine} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: questions.length, now: currentQuestionIndex + 1 }}>
+        {questions.map((_, i) => (
+          <View
+            key={i}
+            style={[styles.scanTick, i <= currentQuestionIndex && styles.scanTickFilled]}
+          />
+        ))}
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.questionContent}>
@@ -284,75 +295,89 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.lg,
     paddingTop: 40,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#16213e',
+    borderBottomColor: COLORS.border,
   },
   backButton: {
-    padding: 8,
+    padding: SPACING.sm,
   },
   backButtonText: {
-    color: '#e94560',
+    color: COLORS.accent,
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: FONTS.sans,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.mono,
   },
-  progressBarContainer: {
+  scanLine: {
+    flexDirection: 'row',
+    gap: 3,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  scanTick: {
+    flex: 1,
     height: 4,
-    backgroundColor: '#16213e',
+    borderRadius: 1,
+    backgroundColor: COLORS.border,
   },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#e94560',
+  scanTickFilled: {
+    backgroundColor: COLORS.accent,
   },
   scrollView: {
     flex: 1,
   },
   questionContent: {
-    padding: 16,
+    padding: SPACING.lg,
   },
   domainTag: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#a855f7',
-    marginBottom: 12,
+    color: COLORS.accent,
+    marginBottom: SPACING.md,
     textTransform: 'uppercase',
+    fontFamily: FONTS.sans,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#1a1a2e',
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#16213e',
-    gap: 12,
+    borderTopColor: COLORS.border,
+    gap: SPACING.md,
   },
   navButton: {
     flex: 1,
-    backgroundColor: '#e94560',
+    backgroundColor: COLORS.accent,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: RADII.md,
     alignItems: 'center',
   },
   disabledButton: {
-    backgroundColor: '#16213e',
+    backgroundColor: COLORS.border,
   },
   navButtonText: {
-    color: '#ffffff',
+    color: COLORS.textOnAccent,
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: FONTS.sans,
   },
   loadingContainer: {
     flex: 1,
@@ -360,12 +385,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    color: '#a0a0a0',
+    marginTop: SPACING.md,
+    color: COLORS.textSecondary,
     fontSize: 16,
+    fontFamily: FONTS.sans,
   },
   resultsContent: {
-    padding: 16,
+    padding: SPACING.lg,
   },
   scoreCircle: {
     width: 120,
@@ -375,33 +401,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginVertical: 24,
+    marginVertical: SPACING.xl,
   },
   scoreText: {
     fontSize: 32,
     fontWeight: 'bold',
+    fontFamily: FONTS.mono,
   },
   resultsTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: COLORS.textPrimary,
     textAlign: 'center',
+    fontFamily: FONTS.sans,
   },
   resultsSubtitle: {
     fontSize: 16,
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xl,
+    fontFamily: FONTS.sans,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 16,
-    paddingVertical: 16,
+    marginVertical: SPACING.lg,
+    paddingVertical: SPACING.lg,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#16213e',
+    borderColor: COLORS.border,
   },
   stat: {
     alignItems: 'center',
@@ -409,26 +438,31 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4ade80',
+    color: COLORS.accent,
+    fontFamily: FONTS.mono,
   },
   statLabel: {
     fontSize: 12,
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     marginTop: 4,
+    fontFamily: FONTS.sans,
   },
   domainTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#bbb',
-    marginTop: 24,
-    marginBottom: 12,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.md,
     textTransform: 'uppercase',
+    fontFamily: FONTS.sans,
   },
   domainBreakdownItem: {
-    backgroundColor: '#1a1a2e',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    borderRadius: RADII.md,
+    marginBottom: SPACING.sm,
   },
   domainBreakdownHeader: {
     flexDirection: 'row',
@@ -438,27 +472,31 @@ const styles = StyleSheet.create({
   domainBreakdownName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.sans,
   },
   domainBreakdownAccuracy: {
     fontSize: 14,
     fontWeight: 'bold',
+    fontFamily: FONTS.mono,
   },
   domainBreakdownStats: {
     fontSize: 12,
-    color: '#999',
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.sans,
   },
   retryButton: {
-    backgroundColor: '#4ade80',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: COLORS.accent,
+    padding: SPACING.lg,
+    borderRadius: RADII.md,
     alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 16,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   retryButtonText: {
-    color: '#000000',
+    color: COLORS.textOnAccent,
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: FONTS.sans,
   },
 });

@@ -12,11 +12,13 @@ import { StudyGoals } from '../components/StudyGoals';
 import { StudyTimer } from '../components/StudyTimer';
 import { LearningPath } from '../components/LearningPath';
 import { StudyResourceCard } from '../components/StudyResourceCard';
-import { StorageService } from '../services/storage';
+import { StudyNotesSection } from '../components/StudyNotesSection';
+import { LabGuide } from '../components/LabGuide';
 import { GamificationService } from '../services/gamification';
 import { QuizService } from '../services/quizService';
 import { GamificationData, DomainReadiness as DomainReadinessType } from '../types';
-import { STUDY_RESOURCES } from '../data/studyResources';
+import { FREE_STUDY_RESOURCES, PAID_STUDY_RESOURCES } from '../data/studyResources';
+import { COLORS, FONTS, RADII, SPACING } from '../constants/theme';
 
 interface HomeScreenProps {
   onQuizPress?: () => void;
@@ -74,7 +76,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#e94560" />
+          <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingText}>Loading your progress...</Text>
         </View>
       </View>
@@ -170,13 +172,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Study Timer */}
           <StudyTimer />
 
-          {/* Study Resources */}
+          {/* Study Resources: Free & Open */}
           <View style={styles.resourcesSection}>
-            <Text style={styles.resourcesTitle}>Study Resources</Text>
+            <Text style={styles.resourcesTitle}>Free &amp; Open</Text>
             <Text style={styles.resourcesSubtitle}>
-              Curated free resources to support your exam prep
+              No cost, no account required — everything you need to reach exam readiness
             </Text>
-            {STUDY_RESOURCES.map(resource => (
+            <StudyNotesSection />
+            <LabGuide />
+            {FREE_STUDY_RESOURCES.map(resource => (
+              <StudyResourceCard key={resource.id} resource={resource} />
+            ))}
+          </View>
+
+          {/* Study Resources: Paid */}
+          <View style={styles.resourcesSection}>
+            <View style={styles.paidDivider} />
+            <Text style={styles.resourcesTitle}>The Armory</Text>
+            <Text style={styles.resourcesSubtitle}>
+              Paid resources worth the money if you want more structured, guided material
+            </Text>
+            {PAID_STUDY_RESOURCES.map(resource => (
               <StudyResourceCard key={resource.id} resource={resource} />
             ))}
           </View>
@@ -189,7 +205,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -206,31 +222,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.lg,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#e94560',
+    color: COLORS.accent,
+    fontFamily: FONTS.sans,
   },
   subtitle: {
     fontSize: 14,
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     marginTop: 4,
+    fontFamily: FONTS.sans,
   },
   adaptiveQuizButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#a855f7',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 12,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.lg,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+    padding: SPACING.lg,
+    marginHorizontal: SPACING.lg,
+    marginVertical: SPACING.md,
   },
   adaptiveQuizButtonIcon: {
     fontSize: 28,
-    marginRight: 12,
+    marginRight: SPACING.md,
   },
   adaptiveQuizButtonContent: {
     flex: 1,
@@ -238,34 +258,36 @@ const styles = StyleSheet.create({
   adaptiveQuizButtonTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.sans,
   },
   adaptiveQuizButtonSubtitle: {
     fontSize: 12,
-    color: '#e0d5ff',
+    color: COLORS.textSecondary,
     marginTop: 2,
+    fontFamily: FONTS.sans,
   },
   adaptiveQuizButtonArrow: {
     fontSize: 20,
-    color: '#fff',
-    marginLeft: 8,
+    color: COLORS.accent,
+    marginLeft: SPACING.sm,
   },
   modeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.lg,
     marginBottom: 4,
   },
   modeCard: {
     flexGrow: 1,
     flexBasis: '30%',
     minWidth: 100,
-    backgroundColor: '#1a1a2e',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.lg,
+    padding: SPACING.md,
     borderWidth: 1,
-    borderColor: '#16213e',
+    borderColor: COLORS.border,
   },
   modeCardDisabled: {
     opacity: 0.5,
@@ -277,27 +299,36 @@ const styles = StyleSheet.create({
   modeCardTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#fff',
+    color: COLORS.textPrimary,
     marginBottom: 2,
+    fontFamily: FONTS.sans,
   },
   modeCardSubtitle: {
     fontSize: 11,
-    color: '#999',
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.sans,
   },
   resourcesSection: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.sm,
+  },
+  paidDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginBottom: SPACING.lg,
   },
   resourcesTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: COLORS.textPrimary,
     marginBottom: 4,
+    fontFamily: FONTS.sans,
   },
   resourcesSubtitle: {
     fontSize: 12,
-    color: '#999',
-    marginBottom: 12,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+    fontFamily: FONTS.sans,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -306,7 +337,8 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#a0a0a0',
+    color: COLORS.textSecondary,
     fontSize: 16,
+    fontFamily: FONTS.sans,
   },
 });
