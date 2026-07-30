@@ -16,10 +16,19 @@ import { COLORS, FONTS, RADII, SPACING, PIXEL_BORDER } from '../constants/theme'
 
 interface QuizScreenProps {
   onBack: () => void;
-  mode?: 'adaptive' | 'mistakes';
+  mode?: 'adaptive' | 'mistakes' | 'domain';
+  domain?: SecurityDomain; // required when mode === 'domain'
+  count?: number; // question count for mode === 'domain', default 15
+  onComplete?: (result: { score: number; correctCount: number; total: number }) => void;
 }
 
-export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive' }) => {
+export const QuizScreen: React.FC<QuizScreenProps> = ({
+  onBack,
+  mode = 'adaptive',
+  domain,
+  count,
+  onComplete,
+}) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -37,6 +46,8 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
       const loadedQuestions =
         mode === 'mistakes'
           ? await QuizService.getMistakeQuestions(15)
+          : mode === 'domain' && domain
+          ? QuizService.getQuestionsByDomain(domain, count ?? 15)
           : await QuizService.getAdaptiveQuiz(10);
       setQuestions(loadedQuestions);
       setAnswers(new Array(loadedQuestions.length).fill(null));
@@ -75,6 +86,12 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
     await QuizService.saveQuizResult(answers as number[], questions, timeTaken);
     setShowResults(true);
+
+    if (mode === 'domain' && onComplete) {
+      const correctCount = answers.filter((a, i) => a === questions[i].correctAnswer).length;
+      const score = Math.round((correctCount / questions.length) * 100);
+      onComplete({ score, correctCount, total: questions.length });
+    }
   };
 
   const getScoreColor = (accuracy: number): string => {
@@ -95,13 +112,17 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
           >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Loading Quiz...</Text>
+          <Text style={styles.headerTitle}>{mode === 'domain' ? 'Loading Boss Battle...' : 'Loading Quiz...'}</Text>
           <View style={{ width: 50 }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingText}>
-            {mode === 'mistakes' ? 'Gathering questions you missed...' : 'Preparing your adaptive quiz...'}
+            {mode === 'mistakes'
+              ? 'Gathering questions you missed...'
+              : mode === 'domain'
+              ? 'Summoning the boss battle...'
+              : 'Preparing your adaptive quiz...'}
           </Text>
         </View>
       </View>
@@ -136,7 +157,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
           >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Results</Text>
+          <Text style={styles.headerTitle}>{mode === 'domain' ? 'Boss Battle Results' : 'Results'}</Text>
           <View style={{ width: 50 }} />
         </View>
 
@@ -146,7 +167,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
             <Text style={[styles.scoreText, { color: getScoreColor(score) }]}>{score}%</Text>
           </View>
 
-          <Text style={styles.resultsTitle}>Quiz Complete!</Text>
+          <Text style={styles.resultsTitle}>{mode === 'domain' ? 'Boss Battle Complete!' : 'Quiz Complete!'}</Text>
           <Text style={styles.resultsSubtitle}>
             You got {correctCount} out of {questions.length} questions correct
           </Text>
@@ -190,7 +211,13 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
             style={styles.retryButton}
             onPress={loadQuestions}
             accessibilityLabel="Start a new quiz"
-            title={mode === 'mistakes' ? '🔁 Review More Mistakes' : '🚀 New Adaptive Quiz'}
+            title={
+              mode === 'mistakes'
+                ? '🔁 Review More Mistakes'
+                : mode === 'domain'
+                ? '⚔️ Retry Boss Battle'
+                : '🚀 New Adaptive Quiz'
+            }
           />
         </ScrollView>
       </View>
@@ -209,7 +236,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, mode = 'adaptive
           >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{mode === 'mistakes' ? 'Review Mistakes' : 'Quiz'}</Text>
+          <Text style={styles.headerTitle}>
+            {mode === 'mistakes' ? 'Review Mistakes' : mode === 'domain' ? 'Boss Battle' : 'Quiz'}
+          </Text>
           <View style={{ width: 50 }} />
         </View>
         <View style={styles.loadingContainer}>

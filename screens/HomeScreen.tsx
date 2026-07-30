@@ -25,6 +25,7 @@ interface HomeScreenProps {
   onMistakesPress?: () => void;
   onFlashcardsPress?: () => void;
   onExamPress?: () => void;
+  onModulesPress?: () => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -32,6 +33,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onMistakesPress,
   onFlashcardsPress,
   onExamPress,
+  onModulesPress,
 }) => {
   const [gamificationData, setGamificationData] = useState<GamificationData | null>(null);
   const [domainReadiness, setDomainReadiness] = useState<DomainReadinessType[]>([]);
@@ -121,6 +123,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
           {/* Study Mode Grid */}
           <View style={styles.modeGrid}>
+            <TouchableOpacity
+              style={styles.modeCard}
+              onPress={() => onModulesPress && onModulesPress()}
+              accessibilityRole="button"
+              accessibilityLabel="Learning modules"
+            >
+              <Text style={styles.modeCardIcon}>📖</Text>
+              <Text style={styles.modeCardTitle}>Learning Modules</Text>
+              <Text style={styles.modeCardSubtitle}>Lessons + boss battles</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.modeCard}
               onPress={() => onFlashcardsPress && onFlashcardsPress()}
