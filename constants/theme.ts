@@ -4,19 +4,19 @@ import { Platform } from 'react-native';
 // Import from here rather than hardcoding hex values in components.
 
 export const COLORS = {
-  background: '#12151A',
-  surface: '#1C2129',
-  border: '#2A3038',
+  background: '#0B0E12',
+  surface: '#141A16',
+  border: '#2E7D32',
 
-  accent: '#00D9E8', // primary: progress, active states, correct answers, mastered
-  warning: '#FF9F1C', // Leitner box-1 / due-for-review states only — never decorative
+  accent: '#39FF14', // primary: progress, active states, correct answers, mastered
+  warning: '#FFD700', // Leitner box-1 / due-for-review states only — never decorative
 
-  success: '#00D9E8', // alias of accent for "correct" states, kept distinct for readability at call sites
-  danger: '#FF5C5C',
+  success: '#39FF14', // alias of accent for "correct" states, kept distinct for readability at call sites
+  danger: '#FF3B3B',
 
-  textPrimary: '#E8EAED',
-  textSecondary: '#8B93A1',
-  textOnAccent: '#0A0C0F',
+  textPrimary: '#F0F0F0',
+  textSecondary: '#7FA87F',
+  textOnAccent: '#0B0E12',
 } as const;
 
 // react-native-web resolves these font-family stacks via CSS; native platforms
