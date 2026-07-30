@@ -80,7 +80,7 @@ export class GamificationService {
         level: 1,
         streak: 0,
         lastActiveDate: new Date().toISOString(),
-        achievements: ACHIEVEMENTS,
+        achievements: ACHIEVEMENTS.map(ach => ({ ...ach })),
         totalStudyTime: 0,
       };
     } catch (error) {
@@ -90,7 +90,7 @@ export class GamificationService {
         level: 1,
         streak: 0,
         lastActiveDate: new Date().toISOString(),
-        achievements: ACHIEVEMENTS,
+        achievements: ACHIEVEMENTS.map(ach => ({ ...ach })),
         totalStudyTime: 0,
       };
     }
