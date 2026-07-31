@@ -107,6 +107,18 @@ const QUESTS := [
 	},
 ]
 
+# The opening cutscene. Deliberately ends right where Kessler's existing
+# Fringeport Docks dialogue picks up ("You're the one who kept asking about
+# the blackout...") so the two read as one continuous scene.
+const INTRO_CUTSCENE := [
+	"MERIDIAN.\n\nA city that never sleeps — because it can't. Every district, every home, every transit line answers to one network: the Lattice.",
+	"Six months ago, your block went dark. No warning. No explanation. Just three days without power, without medical records, without answers.",
+	"The city called it routine maintenance. You didn't believe that then. You don't believe it now.",
+	"You started asking questions. Most people stopped listening.\n\nOne person didn't.",
+	"Her name is Kessler. She used to defend the Lattice for a living. Now she does it quietly — because the city stopped reporting what actually happens down here.",
+	"Today, she's bringing you in.",
+]
+
 # ---- Runtime state (persists across scene changes since this is an autoload) ----
 
 var credits: int = 20
@@ -121,6 +133,12 @@ var player_grid_pos: Vector2i = ROOM["player_start"]
 # Set right before change_scene_to_file so the target scene knows what to load.
 var pending_encounter_id: String = ""
 var pending_vendor_npc_id: String = ""
+
+# Generic cutscene player state — any future story beat (district
+# transitions, the ECHO reveal, the ending) reuses Cutscene.tscn by setting
+# these two before navigating there, rather than a one-off scene per beat.
+var pending_cutscene_beats: Array = []
+var pending_cutscene_next_scene: String = "res://scenes/Main.tscn"
 
 
 func get_npc(id: String) -> Dictionary:
