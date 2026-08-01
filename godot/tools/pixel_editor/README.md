@@ -46,6 +46,9 @@ python3 server.py
 
 # OpenAI
 AI_PROVIDER=openai OPENAI_API_KEY=sk-... python3 server.py
+
+# OpenAI, if gpt-image-1 403s with an org-verification error on your account
+AI_PROVIDER=openai OPENAI_API_KEY=sk-... OPENAI_IMAGE_MODEL=dall-e-3 python3 server.py
 ```
 
 `REPLICATE_MODEL_VERSION` has no default on purpose — pinned model versions

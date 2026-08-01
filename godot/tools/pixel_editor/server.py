@@ -100,14 +100,23 @@ def generate_replicate(prompt, api_key):
 
 
 def generate_openai(prompt, api_key):
+    # gpt-image-1 always returns b64_json and needs no response_format param;
+    # older models (dall-e-3/dall-e-2) default to a "url" response and need
+    # it set explicitly. gpt-image-1 also requires org verification on some
+    # accounts - set OPENAI_IMAGE_MODEL=dall-e-3 as a fallback if it 403s.
+    model = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-1")
+    payload = {
+        "model": model,
+        "prompt": f"pixel art, {prompt}, flat colors, transparent background, game asset, no anti-aliasing, no gradients",
+        "size": "1024x1024",
+        "n": 1,
+    }
+    if model != "gpt-image-1":
+        payload["response_format"] = "b64_json"
+
     req = urllib.request.Request(
         "https://api.openai.com/v1/images/generations",
-        data=json.dumps({
-            "model": "gpt-image-1",
-            "prompt": f"pixel art, {prompt}, flat colors, transparent background, game asset, no anti-aliasing, no gradients",
-            "size": "1024x1024",
-            "n": 1,
-        }).encode("utf-8"),
+        data=json.dumps(payload).encode("utf-8"),
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
