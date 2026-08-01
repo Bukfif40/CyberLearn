@@ -10,3 +10,7 @@ export_credits.cfg
 # Mono-specific ignores
 .mono/
 data_*/
+
+# Python (tools/)
+__pycache__/
+*.pyc
