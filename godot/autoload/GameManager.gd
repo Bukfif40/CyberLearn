@@ -96,6 +96,21 @@ const ITEMS := [
 	{"id": "signal-jammer", "name": "Pocket Signal Jammer", "description": "Cuts local Lattice chatter for a few seconds. Mira swears it once saved her life. Probably an exaggeration.", "price": 55, "badge": "J", "color": Color8(239, 68, 68)},
 ]
 
+# Player sprite sheet config. If sheet_path doesn't exist yet (no art added),
+# Main.gd falls back to the purple "P" badge automatically — no crash.
+# Expected layout: one row per facing direction, `columns` walk frames per row.
+const PLAYER_SPRITE := {
+	"sheet_path": "res://assets/sprites/player.png",
+	"frame_width": 32,
+	"frame_height": 32,
+	"columns": 4,
+	"row_down": 0,
+	"row_left": 1,
+	"row_right": 2,
+	"row_up": 3,
+	"fps": 8.0,
+}
+
 const QUESTS := [
 	{
 		"id": "investigate-phishing",

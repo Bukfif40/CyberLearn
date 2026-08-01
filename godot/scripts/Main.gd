@@ -1,13 +1,14 @@
 extends Node2D
 const UIHelpers = preload("res://scripts/UIHelpers.gd")
+const ProceduralPlayerSprite = preload("res://scripts/ProceduralPlayerSprite.gd")
 
 const TILE_SIZE := 40
 const MAP_ORIGIN := Vector2(40, 110)
+const PLAYER_MOVE_DURATION := 0.12
 
 const TEX_FLOOR := preload("res://assets/tiles/floor_tile.png")
 const TEX_WALL := preload("res://assets/tiles/wall_tile.png")
 const TEX_ROAD := preload("res://assets/tiles/road_tile.png")
-const TEX_PLAYER := preload("res://assets/sprites/player_sprite.png")
 const TEX_VEHICLE := preload("res://assets/sprites/vehicle_sprite.png")
 
 var room: Dictionary = GameManager.ROOM
@@ -16,7 +17,9 @@ var vehicle_runtime: Dictionary = {} # id -> {pos: Vector2i, index:int, dir:int}
 var npc_nodes: Dictionary = {}
 var vehicle_nodes: Dictionary = {}
 var encounter_marker_nodes: Dictionary = {}
-var player_node: TextureRect
+var player_node # AnimatedSprite2D when sprite art is available, else ProceduralPlayerSprite
+var player_facing := "down"
+var player_tween: Tween
 
 var dialogue_active := false
 var dialogue_npc: Dictionary = {}
@@ -57,6 +60,20 @@ func grid_to_pixel_centered(pos: Vector2i, node_size: float) -> Vector2:
 	var tile_pos := MAP_ORIGIN + Vector2(pos.x * TILE_SIZE, pos.y * TILE_SIZE)
 	var offset := (TILE_SIZE - node_size) / 2.0
 	return tile_pos + Vector2(offset, offset)
+
+
+func _grid_to_pixel_center(pos: Vector2i) -> Vector2:
+	return MAP_ORIGIN + Vector2(pos.x * TILE_SIZE, pos.y * TILE_SIZE) + Vector2(TILE_SIZE / 2.0, TILE_SIZE / 2.0)
+
+
+func _dir_name(dx: int, dy: int) -> String:
+	if dy < 0:
+		return "up"
+	if dy > 0:
+		return "down"
+	if dx < 0:
+		return "left"
+	return "right"
 
 
 func _build_background() -> void:
@@ -122,8 +139,11 @@ func _build_entities() -> void:
 		entity_layer.add_child(badge)
 		encounter_marker_nodes[enc["id"]] = badge
 
-	player_node = _make_sprite_node(TEX_PLAYER, 34)
+	var sprite := UIHelpers.try_make_player_sprite(GameManager.PLAYER_SPRITE)
+	player_node = sprite if sprite else ProceduralPlayerSprite.new()
 	entity_layer.add_child(player_node)
+	player_node.position = _grid_to_pixel_center(GameManager.player_grid_pos)
+	player_node.play("idle_down")
 
 
 func _render_positions() -> void:
@@ -148,8 +168,6 @@ func _render_positions() -> void:
 		else:
 			lbl.text = "!"
 			style.bg_color = Color8(239, 68, 68)
-
-	player_node.position = grid_to_pixel_centered(GameManager.player_grid_pos, player_node.size.x)
 
 
 func _get_tile(pos: Vector2i) -> String:
@@ -184,12 +202,16 @@ func _encounter_at(pos: Vector2i) -> Dictionary:
 func move_player(dx: int, dy: int) -> void:
 	if dialogue_active:
 		return
+	var direction := _dir_name(dx, dy)
+	player_facing = direction
 	var target: Vector2i = GameManager.player_grid_pos + Vector2i(dx, dy)
 	if _get_tile(target) == "wall":
+		_face_player(direction)
 		return
 
 	var npc := _npc_at(target)
 	if not npc.is_empty():
+		_face_player(direction)
 		if npc["role"] == "vendor":
 			GameManager.pending_vendor_npc_id = npc["id"]
 			get_tree().change_scene_to_file("res://scenes/Store.tscn")
@@ -198,6 +220,7 @@ func move_player(dx: int, dy: int) -> void:
 		return
 
 	if _vehicle_at(target):
+		_face_player(direction)
 		return  # wait for traffic
 
 	var enc := _encounter_at(target)
@@ -206,8 +229,27 @@ func move_player(dx: int, dy: int) -> void:
 		get_tree().change_scene_to_file("res://scenes/Encounter.tscn")
 		return
 
+	var previous: Vector2i = GameManager.player_grid_pos
 	GameManager.player_grid_pos = target
+	_animate_player_move(previous, target, direction)
 	_render_positions()
+
+
+func _face_player(direction: String) -> void:
+	player_node.play("idle_%s" % direction)
+
+
+func _animate_player_move(from: Vector2i, to: Vector2i, direction: String) -> void:
+	player_node.play("walk_%s" % direction)
+	if player_tween:
+		player_tween.kill()
+	player_tween = create_tween()
+	player_tween.tween_property(player_node, "position", _grid_to_pixel_center(to), PLAYER_MOVE_DURATION)
+	player_tween.finished.connect(_on_player_move_finished.bind(direction))
+
+
+func _on_player_move_finished(direction: String) -> void:
+	player_node.play("idle_%s" % direction)
 
 
 func _open_dialogue(npc: Dictionary) -> void:
