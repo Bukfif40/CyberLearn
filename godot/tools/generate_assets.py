@@ -1,34 +1,38 @@
 #!/usr/bin/env python3
 """Generates the pixel-art tile and sprite PNGs for CyberLearn Quest.
 
-Draws each asset on a 32x32 logical canvas with multi-tone shading (light/
-base/dark per material, plus an outline), then upscales with nearest-
-neighbor to 64x64 so the pixels stay crisp. Colors match the badge colors
-already defined in autoload/GameManager.gd.
+Uses two techniques borrowed from the LPC (Liberated Pixel Cup) pixel-art
+convention, without using any LPC assets themselves:
+
+  1. Hue-shifted outlines: each shape is outlined with a darkened version
+     of its own fill color rather than flat black, which is what gives
+     hand-drawn pixel art its "painted" look instead of a sticker/clip-art
+     look.
+  2. Supersample + box-downsample anti-aliasing: everything is drawn at
+     4x the logical resolution with hard (aliased) edges, then averaged
+     down with a true box filter (via numpy, alpha-premultiplied to avoid
+     dark fringing on transparent edges). This smooths curved silhouettes
+     — heads, shoulders, wheels — while interior fills stay perfectly flat,
+     which is the actual technique behind clean SNES/LPC-era sprite edges.
+
+The final logical image is then upscaled with nearest-neighbor so the
+result stays crisp, chunky pixel art rather than a blurry photo-resize.
 """
 
 from PIL import Image, ImageDraw
+import numpy as np
 import os
 
-LOGICAL = 32
-SCALE = 2
+LOGICAL = 32       # final logical pixel-art resolution
+SUPER = 4          # supersampling factor while drawing
+WORK = LOGICAL * SUPER
+SCALE = 2          # final nearest-neighbor upscale
 FINAL = LOGICAL * SCALE
 
 TILES_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "tiles")
 SPRITES_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "sprites")
 
-OUTLINE = (9, 9, 13, 255)
 SKIN = (222, 180, 135, 255)
-
-
-def canvas():
-    return Image.new("RGBA", (LOGICAL, LOGICAL), (0, 0, 0, 0))
-
-
-def save(img: Image.Image, path: str) -> None:
-    upscaled = img.resize((FINAL, FINAL), Image.NEAREST)
-    upscaled.save(path)
-    print(f"wrote {path} ({FINAL}x{FINAL})")
 
 
 def adjust(color, factor):
@@ -50,52 +54,109 @@ def adjust(color, factor):
     )
 
 
+def outline_of(color):
+    """A darkened, hue-matched outline instead of flat black."""
+    return adjust(color, 0.32)
+
+
+class Canvas:
+    """Draws at WORK resolution using LOGICAL-unit coordinates."""
+
+    def __init__(self):
+        self.img = Image.new("RGBA", (WORK, WORK), (0, 0, 0, 0))
+        self.d = ImageDraw.Draw(self.img)
+
+    def _scale_xy(self, xy):
+        return [c * SUPER for c in xy]
+
+    def rectangle(self, box, fill=None, outline=None):
+        self.d.rectangle(self._scale_xy(box), fill=fill, outline=outline, width=SUPER)
+
+    def rounded_rectangle(self, box, radius, fill=None, outline=None):
+        self.d.rounded_rectangle(self._scale_xy(box), radius=radius * SUPER, fill=fill, outline=outline, width=SUPER)
+
+    def ellipse(self, box, fill=None, outline=None):
+        self.d.ellipse(self._scale_xy(box), fill=fill, outline=outline, width=SUPER)
+
+    def pieslice(self, box, start, end, fill=None, outline=None):
+        self.d.pieslice(self._scale_xy(box), start, end, fill=fill, outline=outline, width=SUPER)
+
+    def polygon(self, points, fill=None, outline=None):
+        pts = [(x * SUPER, y * SUPER) for x, y in points]
+        self.d.polygon(pts, fill=fill, outline=outline)
+
+    def line(self, points, fill=None, width=1):
+        pts = [(x * SUPER, y * SUPER) for x, y in points]
+        self.d.line(pts, fill=fill, width=max(1, width * SUPER))
+
+    def dot(self, x, y, color):
+        self.d.rectangle([x * SUPER, y * SUPER, x * SUPER + SUPER - 1, y * SUPER + SUPER - 1], fill=color)
+
+
+def downsample(canvas: Canvas) -> Image.Image:
+    """Alpha-premultiplied box downsample from WORK to LOGICAL resolution."""
+    arr = np.asarray(canvas.img, dtype=np.float32)
+    alpha = arr[:, :, 3:4] / 255.0
+    premult = arr.copy()
+    premult[:, :, :3] *= alpha
+
+    blocks = premult.reshape(LOGICAL, SUPER, LOGICAL, SUPER, 4).mean(axis=(1, 3))
+    out_alpha_255 = blocks[:, :, 3:4]
+    alpha_frac = out_alpha_255 / 255.0
+    safe_alpha_frac = np.where(alpha_frac > 0.001, alpha_frac, 1.0)
+    out_rgb = blocks[:, :, :3] / safe_alpha_frac
+    out = np.concatenate([out_rgb, out_alpha_255], axis=2)
+    out = np.clip(out, 0, 255).astype(np.uint8)
+    return Image.fromarray(out, mode="RGBA")
+
+
+def save(canvas: Canvas, path: str) -> None:
+    logical_img = downsample(canvas)
+    upscaled = logical_img.resize((FINAL, FINAL), Image.NEAREST)
+    upscaled.save(path)
+    print(f"wrote {path} ({FINAL}x{FINAL})")
+
+
 # ---------------------------------------------------------------------------
 # Tiles
 # ---------------------------------------------------------------------------
 
-def make_floor_tile() -> Image.Image:
-    img = canvas()
-    d = ImageDraw.Draw(img)
+def make_floor_tile() -> Canvas:
+    c = Canvas()
     base = (29, 35, 47, 255)
     light = adjust(base, 1.35)
     dark = adjust(base, 0.6)
-    d.rectangle([0, 0, 31, 31], fill=base)
+    c.rectangle([0, 0, 31, 31], fill=base)
 
-    # four bevelled deck panels, each with a light top/left edge and a
-    # dark bottom/right edge to read as slightly recessed metal plating
     for px, py in [(1, 1), (17, 1), (1, 17), (17, 17)]:
-        d.rectangle([px, py, px + 13, py + 13], outline=dark)
-        d.line([(px, py), (px + 13, py)], fill=light)
-        d.line([(px, py), (px, py + 13)], fill=light)
-        # rivet
-        d.point((px + 2, py + 2), fill=light)
-        d.point((px + 11, py + 11), fill=dark)
+        c.rectangle([px, py, px + 13, py + 13], outline=dark)
+        c.line([(px, py), (px + 13, py)], fill=light)
+        c.line([(px, py), (px, py + 13)], fill=light)
+        c.dot(px + 2, py + 2, light)
+        c.dot(px + 11, py + 11, dark)
 
-    # tread-diamond speckle across the surface
     for cx, cy in [(8, 8), (24, 8), (8, 24), (24, 24), (16, 16)]:
-        d.point((cx, cy), fill=light)
-        d.point((cx + 1, cy + 1), fill=dark)
+        c.dot(cx, cy, light)
+        c.dot(cx + 1, cy + 1, dark)
 
-    return img
+    return c
 
 
-def make_wall_tile() -> Image.Image:
-    img = canvas()
-    d = ImageDraw.Draw(img)
+def make_wall_tile() -> Canvas:
+    c = Canvas()
     base = (17, 20, 27, 255)
     mortar = (10, 12, 16, 255)
     brick = (24, 28, 37, 255)
     brick_light = adjust(brick, 1.3)
     brick_dark = adjust(brick, 0.65)
     weathered = (34, 30, 28, 255)
-    d.rectangle([0, 0, 31, 31], fill=base)
+    c.rectangle([0, 0, 31, 31], fill=base)
 
     brick_h = 7
     row = 0
     y = -1
     while y < 32:
-        d.line([(0, y), (31, y)], fill=mortar)
+        c.line([(0, y), (31, y)], fill=mortar)
         offset = 8 if row % 2 == 0 else 0
         x = -8 + offset
         while x < 32:
@@ -103,150 +164,152 @@ def make_wall_tile() -> Image.Image:
             if x1 >= 0 and x0 <= 31:
                 cx0, cx1 = max(x0, 0), min(x1, 31)
                 fill = weathered if (row, x) in [(1, 8), (3, -8)] else brick
-                d.rectangle([cx0, y + 1, cx1, y + brick_h - 1], fill=fill)
-                d.line([(cx0, y + 1), (cx1, y + 1)], fill=brick_light)
-                d.line([(cx0, y + brick_h - 1), (cx1, y + brick_h - 1)], fill=brick_dark)
+                c.rectangle([cx0, y + 1, cx1, y + brick_h - 1], fill=fill)
+                c.line([(cx0, y + 1), (cx1, y + 1)], fill=brick_light)
+                c.line([(cx0, y + brick_h - 1), (cx1, y + brick_h - 1)], fill=brick_dark)
             x += 16
         y += brick_h
         row += 1
 
-    return img
+    return c
 
 
-def make_road_tile() -> Image.Image:
-    img = canvas()
-    d = ImageDraw.Draw(img)
+def make_road_tile() -> Canvas:
+    c = Canvas()
     base = (19, 22, 30, 255)
     speckle_light = (28, 32, 42, 255)
     speckle_dark = (13, 15, 20, 255)
     lane = (216, 180, 62, 255)
     lane_dark = adjust(lane, 0.7)
-    d.rectangle([0, 0, 31, 31], fill=base)
+    c.rectangle([0, 0, 31, 31], fill=base)
 
     for px, py in [(3, 3), (26, 5), (6, 22), (24, 27), (14, 12), (5, 14), (22, 18), (10, 28)]:
-        d.point((px, py), fill=speckle_light)
+        c.dot(px, py, speckle_light)
     for px, py in [(9, 6), (20, 9), (2, 18), (28, 14), (16, 25), (12, 2)]:
-        d.point((px, py), fill=speckle_dark)
+        c.dot(px, py, speckle_dark)
 
-    # hairline crack for texture
-    d.line([(4, 27), (7, 22), (6, 17)], fill=speckle_dark)
+    c.line([(4, 27), (7, 22), (6, 17)], fill=speckle_dark)
 
-    # dashed centerline, worn two-tone paint; sized so tiles chain into a
-    # continuous dash-gap-dash pattern along the road
-    d.rectangle([3, 14, 18, 17], fill=lane)
-    d.line([(3, 14), (18, 14)], fill=adjust(lane, 1.25))
-    d.line([(3, 17), (18, 17)], fill=lane_dark)
+    c.rectangle([3, 14, 18, 17], fill=lane)
+    c.line([(3, 14), (18, 14)], fill=adjust(lane, 1.25))
+    c.line([(3, 17), (18, 17)], fill=lane_dark)
 
-    return img
+    return c
 
 
 # ---------------------------------------------------------------------------
 # Characters (top-down chibi humanoid) and vehicle
 # ---------------------------------------------------------------------------
 
-def make_character(main_color, accessory="none") -> Image.Image:
-    img = canvas()
-    d = ImageDraw.Draw(img)
+def make_character(main_color, accessory="none") -> Canvas:
+    c = Canvas()
 
     base = main_color
     light = adjust(main_color, 1.4)
     dark = adjust(main_color, 0.6)
+    garment_outline = outline_of(main_color)
     hair = adjust(main_color, 0.45)
     hair_light = adjust(hair, 1.3)
+    hair_outline = outline_of(hair)
     skin = SKIN
     skin_shadow = adjust(SKIN, 0.82)
+    skin_outline = outline_of(SKIN)
     shoe = (26, 28, 35, 255)
+    shoe_outline = outline_of(shoe)
 
     # ground shadow
-    d.ellipse([6, 25, 25, 30], fill=(0, 0, 0, 70))
+    c.ellipse([6, 25, 25, 30], fill=(0, 0, 0, 70))
 
     # legs + shoes
-    d.rectangle([11, 21, 14, 27], fill=dark, outline=OUTLINE)
-    d.rectangle([17, 21, 20, 27], fill=dark, outline=OUTLINE)
-    d.rounded_rectangle([9, 25, 15, 29], radius=1, fill=shoe, outline=OUTLINE)
-    d.rounded_rectangle([16, 25, 22, 29], radius=1, fill=shoe, outline=OUTLINE)
+    c.rectangle([11, 21, 14, 27], fill=dark, outline=garment_outline)
+    c.rectangle([17, 21, 20, 27], fill=dark, outline=garment_outline)
+    c.rounded_rectangle([9, 25, 15, 29], radius=1, fill=shoe, outline=shoe_outline)
+    c.rounded_rectangle([16, 25, 22, 29], radius=1, fill=shoe, outline=shoe_outline)
 
     # arms + hands
-    d.rounded_rectangle([3, 14, 8, 22], radius=2, fill=dark, outline=OUTLINE)
-    d.rounded_rectangle([23, 14, 28, 22], radius=2, fill=dark, outline=OUTLINE)
-    d.ellipse([3, 19, 8, 24], fill=skin, outline=OUTLINE)
-    d.ellipse([23, 19, 28, 24], fill=skin, outline=OUTLINE)
+    c.rounded_rectangle([3, 14, 8, 22], radius=2, fill=dark, outline=garment_outline)
+    c.rounded_rectangle([23, 14, 28, 22], radius=2, fill=dark, outline=garment_outline)
+    c.ellipse([3, 19, 8, 24], fill=skin, outline=skin_outline)
+    c.ellipse([23, 19, 28, 24], fill=skin, outline=skin_outline)
 
     # torso garment with a highlight strip (left) and shadow strip (right)
-    d.rounded_rectangle([8, 12, 23, 25], radius=3, fill=base, outline=OUTLINE)
-    d.rectangle([9, 14, 11, 23], fill=light)
-    d.rectangle([20, 14, 22, 23], fill=dark)
+    c.rounded_rectangle([8, 12, 23, 25], radius=3, fill=base, outline=garment_outline)
+    c.rectangle([9, 14, 11, 23], fill=light)
+    c.rectangle([20, 14, 22, 23], fill=dark)
 
     if accessory == "collar":  # Kessler - mentor's blazer + badge pin
-        d.polygon([(12, 12), (15, 17), (11, 17)], fill=dark)
-        d.polygon([(19, 12), (16, 17), (20, 17)], fill=dark)
-        d.ellipse([14, 18, 17, 21], fill=(255, 213, 110, 255), outline=OUTLINE)
+        c.polygon([(12, 12), (15, 17), (11, 17)], fill=dark)
+        c.polygon([(19, 12), (16, 17), (20, 17)], fill=dark)
+        badge = (255, 213, 110, 255)
+        c.ellipse([14, 18, 17, 21], fill=badge, outline=outline_of(badge))
     elif accessory == "apron":  # Mira - vendor's apron with a pocket
-        d.rectangle([11, 15, 20, 24], fill=light, outline=OUTLINE)
-        d.rectangle([13, 19, 18, 22], fill=dark)
+        c.rectangle([11, 15, 20, 24], fill=light, outline=garment_outline)
+        c.rectangle([13, 19, 18, 22], fill=dark)
     elif accessory == "hood":  # Player - hoodie drawstrings
-        d.line([(13, 13), (12, 18)], fill=dark, width=1)
-        d.line([(18, 13), (19, 18)], fill=dark, width=1)
-        d.ellipse([11, 17, 13, 19], fill=hair_light, outline=OUTLINE)
-        d.ellipse([18, 17, 20, 19], fill=hair_light, outline=OUTLINE)
+        c.line([(13, 13), (12, 18)], fill=dark, width=1)
+        c.line([(18, 13), (19, 18)], fill=dark, width=1)
+        c.ellipse([11, 17, 13, 19], fill=hair_light, outline=garment_outline)
+        c.ellipse([18, 17, 20, 19], fill=hair_light, outline=garment_outline)
 
     # head with a soft jaw shadow
-    d.ellipse([9, 2, 22, 15], fill=skin, outline=OUTLINE)
-    d.pieslice([9, 8, 22, 15], 0, 180, fill=skin_shadow)
-    d.line([(9, 8), (22, 8)], fill=skin)
+    c.ellipse([9, 2, 22, 15], fill=skin, outline=skin_outline)
+    c.pieslice([9, 8, 22, 15], 0, 180, fill=skin_shadow)
+    c.line([(9, 8), (22, 8)], fill=skin)
 
     # hair / cap
-    d.pieslice([8, -1, 23, 11], 180, 360, fill=hair, outline=OUTLINE)
-    d.line([(9, 4), (14, 2)], fill=hair_light)
+    c.pieslice([8, -1, 23, 11], 180, 360, fill=hair, outline=hair_outline)
+    c.line([(9, 4), (14, 2)], fill=hair_light)
 
     # eyes
-    d.point((13, 9), fill=OUTLINE)
-    d.point((18, 9), fill=OUTLINE)
+    c.dot(13, 9, garment_outline)
+    c.dot(18, 9, garment_outline)
 
-    return img
+    return c
 
 
-def make_vehicle(main_color) -> Image.Image:
-    img = canvas()
-    d = ImageDraw.Draw(img)
+def make_vehicle(main_color) -> Canvas:
+    c = Canvas()
 
     base = main_color
     light = adjust(main_color, 1.35)
     dark = adjust(main_color, 0.6)
+    body_outline = outline_of(main_color)
     cab = adjust(main_color, 0.85)
     cab_light = adjust(cab, 1.3)
+    cab_outline = outline_of(cab)
     glass = (150, 210, 230, 255)
     glass_light = adjust(glass, 1.2)
     wheel = (14, 15, 19, 255)
+    wheel_outline = outline_of(wheel)
     hub = (70, 74, 84, 255)
 
     # ground shadow
-    d.ellipse([2, 24, 30, 30], fill=(0, 0, 0, 60))
+    c.ellipse([2, 24, 30, 30], fill=(0, 0, 0, 60))
 
     # cargo body with shading
-    d.rounded_rectangle([2, 7, 25, 23], radius=2, fill=base, outline=OUTLINE)
-    d.rectangle([3, 8, 24, 10], fill=light)
-    d.rectangle([3, 19, 24, 22], fill=dark)
-    d.line([(3, 15), (24, 15)], fill=dark)
+    c.rounded_rectangle([2, 7, 25, 23], radius=2, fill=base, outline=body_outline)
+    c.rectangle([3, 8, 24, 10], fill=light)
+    c.rectangle([3, 19, 24, 22], fill=dark)
+    c.line([(3, 15), (24, 15)], fill=dark)
 
     # cab
-    d.rounded_rectangle([22, 9, 29, 21], radius=2, fill=cab, outline=OUTLINE)
-    d.rectangle([24, 11, 28, 16], fill=glass)
-    d.line([(24, 11), (28, 11)], fill=glass_light)
-    d.rectangle([22, 9, 29, 10], fill=cab_light)
+    c.rounded_rectangle([22, 9, 29, 21], radius=2, fill=cab, outline=cab_outline)
+    c.rectangle([24, 11, 28, 16], fill=glass)
+    c.line([(24, 11), (28, 11)], fill=glass_light)
+    c.rectangle([22, 9, 29, 10], fill=cab_light)
 
     # wheels with hubcaps
     for wx, wy in [(5, 4), (5, 24), (16, 4), (16, 24)]:
-        d.rectangle([wx, wy, wx + 5, wy + 3], fill=wheel, outline=OUTLINE)
-        d.point((wx + 2, wy + 1), fill=hub)
+        c.rectangle([wx, wy, wx + 5, wy + 3], fill=wheel, outline=wheel_outline)
+        c.dot(wx + 2, wy + 1, hub)
 
     # lights
-    d.point((29, 12), fill=(255, 232, 150, 255))
-    d.point((29, 18), fill=(255, 232, 150, 255))
-    d.point((2, 12), fill=(220, 60, 60, 255))
-    d.point((2, 18), fill=(220, 60, 60, 255))
+    c.dot(29, 12, (255, 232, 150, 255))
+    c.dot(29, 18, (255, 232, 150, 255))
+    c.dot(2, 12, (220, 60, 60, 255))
+    c.dot(2, 18, (220, 60, 60, 255))
 
-    return img
+    return c
 
 
 def main() -> None:
