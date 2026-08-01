@@ -21,6 +21,7 @@ const NPCS := [
 		"role": "mentor",
 		"badge": "K",
 		"color": Color8(245, 158, 11),
+		"sprite": "res://assets/sprites/kessler_sprite.png",
 		"start": Vector2i(5, 3),
 		"patrol": [Vector2i(4, 3), Vector2i(5, 3), Vector2i(6, 3)],
 		"lines": [
@@ -36,6 +37,7 @@ const NPCS := [
 		"role": "vendor",
 		"badge": "$",
 		"color": Color8(16, 185, 129),
+		"sprite": "res://assets/sprites/mira_sprite.png",
 		"start": Vector2i(2, 5),
 		"patrol": [],
 		"lines": [],

@@ -4,13 +4,19 @@ const UIHelpers = preload("res://scripts/UIHelpers.gd")
 const TILE_SIZE := 40
 const MAP_ORIGIN := Vector2(40, 110)
 
+const TEX_FLOOR := preload("res://assets/tiles/floor_tile.png")
+const TEX_WALL := preload("res://assets/tiles/wall_tile.png")
+const TEX_ROAD := preload("res://assets/tiles/road_tile.png")
+const TEX_PLAYER := preload("res://assets/sprites/player_sprite.png")
+const TEX_VEHICLE := preload("res://assets/sprites/vehicle_sprite.png")
+
 var room: Dictionary = GameManager.ROOM
 var npc_runtime: Dictionary = {}     # id -> {pos: Vector2i, index:int, dir:int}
 var vehicle_runtime: Dictionary = {} # id -> {pos: Vector2i, index:int, dir:int}
 var npc_nodes: Dictionary = {}
 var vehicle_nodes: Dictionary = {}
 var encounter_marker_nodes: Dictionary = {}
-var player_node: Panel
+var player_node: TextureRect
 
 var dialogue_active := false
 var dialogue_npc: Dictionary = {}
@@ -66,16 +72,18 @@ func _build_map_tiles() -> void:
 		for x in range(int(room["width"])):
 			var is_border: bool = x == 0 or y == 0 or x == int(room["width"]) - 1 or y == int(room["height"]) - 1
 			var is_road: bool = y == int(room["road_y"]) and x >= int(room["road_x_start"]) and x <= int(room["road_x_end"])
-			var rect := ColorRect.new()
-			rect.size = Vector2(TILE_SIZE - 2, TILE_SIZE - 2)
-			rect.position = MAP_ORIGIN + Vector2(x * TILE_SIZE, y * TILE_SIZE)
+			var tex_rect := TextureRect.new()
+			tex_rect.size = Vector2(TILE_SIZE, TILE_SIZE)
+			tex_rect.position = MAP_ORIGIN + Vector2(x * TILE_SIZE, y * TILE_SIZE)
+			tex_rect.stretch_mode = TextureRect.STRETCH_SCALE
+			tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			if is_border:
-				rect.color = Color8(11, 13, 18)
+				tex_rect.texture = TEX_WALL
 			elif is_road:
-				rect.color = Color8(20, 23, 31)
+				tex_rect.texture = TEX_ROAD
 			else:
-				rect.color = Color8(30, 36, 48)
-			map_layer.add_child(rect)
+				tex_rect.texture = TEX_FLOOR
+			map_layer.add_child(tex_rect)
 
 
 func _init_npc_runtime() -> void:
@@ -89,35 +97,44 @@ func _init_vehicle_runtime() -> void:
 		vehicle_runtime[vehicle["id"]] = {"pos": path[0], "index": 0, "dir": 1}
 
 
+func _make_sprite_node(texture: Texture2D, size: float) -> TextureRect:
+	var node := TextureRect.new()
+	node.texture = texture
+	node.size = Vector2(size, size)
+	node.stretch_mode = TextureRect.STRETCH_SCALE
+	node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	return node
+
+
 func _build_entities() -> void:
 	for npc in GameManager.NPCS:
-		var badge := UIHelpers.make_badge(npc["badge"], npc["color"], 26)
-		entity_layer.add_child(badge)
-		npc_nodes[npc["id"]] = badge
+		var node := _make_sprite_node(load(String(npc["sprite"])), 34)
+		entity_layer.add_child(node)
+		npc_nodes[npc["id"]] = node
 
 	for vehicle in GameManager.VEHICLES:
-		var badge := UIHelpers.make_badge(vehicle["badge"], vehicle["color"], 24)
-		entity_layer.add_child(badge)
-		vehicle_nodes[vehicle["id"]] = badge
+		var node := _make_sprite_node(TEX_VEHICLE, 36)
+		entity_layer.add_child(node)
+		vehicle_nodes[vehicle["id"]] = node
 
 	for enc in GameManager.ENCOUNTERS:
 		var badge := UIHelpers.make_badge("!", Color8(239, 68, 68), 24)
 		entity_layer.add_child(badge)
 		encounter_marker_nodes[enc["id"]] = badge
 
-	player_node = UIHelpers.make_badge("P", Color8(108, 92, 231), 28)
+	player_node = _make_sprite_node(TEX_PLAYER, 34)
 	entity_layer.add_child(player_node)
 
 
 func _render_positions() -> void:
 	for npc in GameManager.NPCS:
 		var rt: Dictionary = npc_runtime[npc["id"]]
-		var node: Panel = npc_nodes[npc["id"]]
+		var node: TextureRect = npc_nodes[npc["id"]]
 		node.position = grid_to_pixel_centered(rt["pos"], node.size.x)
 
 	for vehicle in GameManager.VEHICLES:
 		var rt: Dictionary = vehicle_runtime[vehicle["id"]]
-		var node: Panel = vehicle_nodes[vehicle["id"]]
+		var node: TextureRect = vehicle_nodes[vehicle["id"]]
 		node.position = grid_to_pixel_centered(rt["pos"], node.size.x)
 
 	for enc in GameManager.ENCOUNTERS:
