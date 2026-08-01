@@ -312,6 +312,151 @@ def make_vehicle(main_color) -> Canvas:
     return c
 
 
+# ---------------------------------------------------------------------------
+# Player walk-cycle sheet
+#
+# Matches autoload/GameManager.gd's PLAYER_SPRITE config exactly: a 128x128
+# sheet, 4 columns of 32x32 walk frames per row, row 0/1/2/3 = down/left/
+# right/up. UIHelpers.try_make_player_sprite() slices it with
+# Rect2(col*32, row*32, 32, 32) and builds walk_<dir>/idle_<dir>
+# AnimatedSprite2D animations from it - idle reuses column 0 of each row.
+# ---------------------------------------------------------------------------
+
+# Per-phase vertical offset (logical px) for the "near" and "far" leg/arm in
+# a front/back view walk cycle: contact-left, passing, contact-right, passing.
+_WALK_PHASES_FRONT = {0: (0, 0), 1: (-1, 1), 2: (0, 0), 3: (1, -1)}
+# Per-phase horizontal offset for the leading leg/arm in a side-profile view.
+_WALK_PHASES_SIDE = {0: 0, 1: -2, 2: 0, 3: 2}
+
+
+def make_player_front(main_color, phase, facing_up=False) -> Canvas:
+    c = Canvas()
+    base = main_color
+    light = adjust(main_color, 1.4)
+    dark = adjust(main_color, 0.6)
+    garment_outline = outline_of(main_color)
+    hair = adjust(main_color, 0.45)
+    hair_light = adjust(hair, 1.3)
+    hair_outline = outline_of(hair)
+    skin = SKIN
+    skin_shadow = adjust(SKIN, 0.82)
+    skin_outline = outline_of(SKIN)
+    shoe = (26, 28, 35, 255)
+    shoe_outline = outline_of(shoe)
+
+    leg_l_dy, leg_r_dy = _WALK_PHASES_FRONT[phase]
+    arm_l_dy, arm_r_dy = -leg_l_dy, -leg_r_dy
+
+    c.ellipse([6, 25, 25, 30], fill=(0, 0, 0, 70))
+
+    c.rectangle([11, 21 + leg_l_dy, 14, 27 + leg_l_dy], fill=dark, outline=garment_outline)
+    c.rectangle([17, 21 + leg_r_dy, 20, 27 + leg_r_dy], fill=dark, outline=garment_outline)
+    c.rounded_rectangle([9, 25 + leg_l_dy, 15, 29 + leg_l_dy], radius=1, fill=shoe, outline=shoe_outline)
+    c.rounded_rectangle([16, 25 + leg_r_dy, 22, 29 + leg_r_dy], radius=1, fill=shoe, outline=shoe_outline)
+
+    c.rounded_rectangle([3, 14 + arm_l_dy, 8, 22 + arm_l_dy], radius=2, fill=dark, outline=garment_outline)
+    c.rounded_rectangle([23, 14 + arm_r_dy, 28, 22 + arm_r_dy], radius=2, fill=dark, outline=garment_outline)
+    c.ellipse([3, 19 + arm_l_dy, 8, 24 + arm_l_dy], fill=skin, outline=skin_outline)
+    c.ellipse([23, 19 + arm_r_dy, 28, 24 + arm_r_dy], fill=skin, outline=skin_outline)
+
+    c.rounded_rectangle([8, 12, 23, 25], radius=3, fill=base, outline=garment_outline)
+    c.rectangle([9, 14, 11, 23], fill=light)
+    c.rectangle([20, 14, 22, 23], fill=dark)
+
+    if facing_up:
+        # back of the hood, no face
+        c.ellipse([9, 2, 22, 15], fill=hair, outline=hair_outline)
+        c.line([(9, 6), (22, 6)], fill=hair_light)
+    else:
+        c.line([(13, 13), (12, 18)], fill=dark, width=1)
+        c.line([(18, 13), (19, 18)], fill=dark, width=1)
+        c.ellipse([11, 17, 13, 19], fill=hair_light, outline=garment_outline)
+        c.ellipse([18, 17, 20, 19], fill=hair_light, outline=garment_outline)
+
+        c.ellipse([9, 2, 22, 15], fill=skin, outline=skin_outline)
+        c.pieslice([9, 8, 22, 15], 0, 180, fill=skin_shadow)
+        c.line([(9, 8), (22, 8)], fill=skin)
+
+        c.pieslice([8, -1, 23, 11], 180, 360, fill=hair, outline=hair_outline)
+        c.line([(9, 4), (14, 2)], fill=hair_light)
+
+        c.dot(13, 9, garment_outline)
+        c.dot(18, 9, garment_outline)
+
+    return c
+
+
+def make_player_side(main_color, phase) -> Canvas:
+    """Profile view facing left; the right row is this frame mirrored."""
+    c = Canvas()
+    base = main_color
+    light = adjust(main_color, 1.4)
+    dark = adjust(main_color, 0.6)
+    garment_outline = outline_of(main_color)
+    hair = adjust(main_color, 0.45)
+    hair_outline = outline_of(hair)
+    skin = SKIN
+    skin_outline = outline_of(SKIN)
+    shoe = (26, 28, 35, 255)
+    shoe_outline = outline_of(shoe)
+
+    step_dx = _WALK_PHASES_SIDE[phase]
+
+    c.ellipse([9, 25, 24, 30], fill=(0, 0, 0, 70))
+
+    # back (near-side) leg stays put
+    c.rectangle([15, 21, 18, 27], fill=dark, outline=garment_outline)
+    c.rounded_rectangle([14, 25, 19, 29], radius=1, fill=shoe, outline=shoe_outline)
+
+    # trailing arm, swings opposite the front leg
+    c.rounded_rectangle([18 - step_dx, 15, 22 - step_dx, 22], radius=2, fill=dark, outline=garment_outline)
+    c.ellipse([18 - step_dx, 20, 23 - step_dx, 24], fill=skin, outline=skin_outline)
+
+    c.rounded_rectangle([10, 12, 21, 25], radius=3, fill=base, outline=garment_outline)
+    c.rectangle([11, 14, 13, 23], fill=light)
+    c.rectangle([18, 14, 20, 23], fill=dark)
+
+    # front leg, swings with the step
+    c.rectangle([13 + step_dx, 21, 16 + step_dx, 27], fill=dark, outline=garment_outline)
+    c.rounded_rectangle([11 + step_dx, 25, 17 + step_dx, 29], radius=1, fill=shoe, outline=shoe_outline)
+
+    # leading arm, swings with the front leg
+    c.rounded_rectangle([9 + step_dx, 15, 13 + step_dx, 22], radius=2, fill=dark, outline=garment_outline)
+    c.ellipse([8 + step_dx, 20, 13 + step_dx, 24], fill=skin, outline=skin_outline)
+
+    # profile head with a small nose bump toward the facing side
+    c.ellipse([9, 2, 21, 15], fill=skin, outline=skin_outline)
+    c.polygon([(8, 8), (5, 9), (8, 10)], fill=skin, outline=skin_outline)
+
+    # hood covering the back of the head
+    c.pieslice([9, -1, 22, 11], 200, 380, fill=hair, outline=hair_outline)
+    c.rectangle([18, 4, 22, 9], fill=hair)
+
+    c.dot(9, 9, garment_outline)
+
+    return c
+
+
+def make_player_sheet(main_color) -> Image.Image:
+    frame = LOGICAL  # 32px per frame, matching PLAYER_SPRITE frame_width/height
+    sheet = Image.new("RGBA", (frame * 4, frame * 4), (0, 0, 0, 0))
+
+    for col in range(4):
+        down_img = downsample(make_player_front(main_color, col, facing_up=False))
+        sheet.paste(down_img, (col * frame, 0 * frame), down_img)
+
+        left_img = downsample(make_player_side(main_color, col))
+        sheet.paste(left_img, (col * frame, 1 * frame), left_img)
+
+        right_img = left_img.transpose(Image.FLIP_LEFT_RIGHT)
+        sheet.paste(right_img, (col * frame, 2 * frame), right_img)
+
+        up_img = downsample(make_player_front(main_color, col, facing_up=True))
+        sheet.paste(up_img, (col * frame, 3 * frame), up_img)
+
+    return sheet
+
+
 def main() -> None:
     os.makedirs(TILES_DIR, exist_ok=True)
     os.makedirs(SPRITES_DIR, exist_ok=True)
@@ -324,6 +469,11 @@ def main() -> None:
     save(make_character((245, 158, 11, 255), "collar"), os.path.join(SPRITES_DIR, "kessler_sprite.png"))
     save(make_character((16, 185, 129, 255), "apron"), os.path.join(SPRITES_DIR, "mira_sprite.png"))
     save(make_vehicle((146, 152, 168, 255)), os.path.join(SPRITES_DIR, "vehicle_sprite.png"))
+
+    player_sheet = make_player_sheet((108, 92, 231, 255))
+    player_sheet_path = os.path.join(SPRITES_DIR, "player.png")
+    player_sheet.save(player_sheet_path)
+    print(f"wrote {player_sheet_path} ({player_sheet.width}x{player_sheet.height})")
 
 
 if __name__ == "__main__":
