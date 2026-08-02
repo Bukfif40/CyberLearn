@@ -167,9 +167,16 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path == "/":
             path = "/index.html"
-        safe_path = os.path.normpath(path).lstrip("/")
-        full_path = os.path.join(ROOT, safe_path)
-        if not full_path.startswith(ROOT) or not os.path.isfile(full_path):
+        # Strip the URL's leading forward slash before any OS-specific path
+        # handling. On Windows, os.path.normpath("/index.html") produces
+        # "\index.html", and .lstrip("/") doesn't touch that leading
+        # backslash - then os.path.join(ROOT, "\index.html") resets to the
+        # drive root ("C:\index.html") per Windows join semantics, giving a
+        # 404 for every request. Stripping "/" from the raw URL first avoids
+        # ever handing a leading-separator string to os.path.join.
+        rel_path = path.lstrip("/")
+        full_path = os.path.normpath(os.path.join(ROOT, rel_path))
+        if not full_path.startswith(os.path.normpath(ROOT)) or not os.path.isfile(full_path):
             self.send_response(404)
             self.end_headers()
             return
