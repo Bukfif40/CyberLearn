@@ -75,6 +75,7 @@ static func try_make_player_sprite(config: Dictionary) -> AnimatedSprite2D:
 	var sprite := AnimatedSprite2D.new()
 	sprite.sprite_frames = frames
 	sprite.animation = "idle_down"
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.play("idle_down")
 	return sprite
 
