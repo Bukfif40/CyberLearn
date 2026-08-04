@@ -11,11 +11,11 @@ endpoints the frontend calls:
                       grid, and returns it as base64 PNG for the editor to
                       load — you then refine it pixel by pixel.
 
-No API key is bundled or committed. Configure a provider via environment
-variables before starting:
+No API key is bundled or committed. Provider defaults to openai; configure
+via environment variables before starting:
 
+  OPENAI_API_KEY=sk-...                                                                  python3 server.py
   AI_PROVIDER=replicate REPLICATE_API_TOKEN=r8_... REPLICATE_MODEL_VERSION=<version-hash> python3 server.py
-  AI_PROVIDER=openai    OPENAI_API_KEY=sk-...                                            python3 server.py
 
 REPLICATE_MODEL_VERSION must be a version hash you copy from the model's
 page on replicate.com (e.g. a pixel-art-tuned SDXL model) - there is
@@ -127,7 +127,7 @@ def generate_openai(prompt, api_key):
 
 
 def generate_raw_image(prompt):
-    provider = os.environ.get("AI_PROVIDER", "").lower()
+    provider = os.environ.get("AI_PROVIDER", "openai").lower()
     if provider == "replicate":
         api_key = os.environ.get("REPLICATE_API_TOKEN")
         if not api_key:
@@ -244,8 +244,8 @@ def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8642
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"Pixel Forge running at http://127.0.0.1:{port}")
-    provider = os.environ.get("AI_PROVIDER", "")
-    print(f"AI provider: {provider or 'none configured (AI Seed button will error until set)'}")
+    provider = os.environ.get("AI_PROVIDER", "openai")
+    print(f"AI provider: {provider}")
     server.serve_forever()
 
 
