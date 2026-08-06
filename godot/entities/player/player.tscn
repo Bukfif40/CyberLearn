@@ -226,6 +226,22 @@ region = Rect2(160, 150, 40, 50)
 atlas = ExtResource("6_afbqv")
 region = Rect2(200, 150, 40, 50)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_neutraldown"]
+atlas = ExtResource("6_afbqv")
+region = Rect2(80, 0, 40, 50)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_neutralleft"]
+atlas = ExtResource("6_afbqv")
+region = Rect2(80, 50, 40, 50)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_neutralright"]
+atlas = ExtResource("6_afbqv")
+region = Rect2(80, 100, 40, 50)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_neutralup"]
+atlas = ExtResource("6_afbqv")
+region = Rect2(80, 150, 40, 50)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_mtric"]
 resource_local_to_scene = true
 animations = [{
@@ -370,6 +386,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_og5nk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutraldown")
 }],
 "loop": true,
 "name": &"run-down",
@@ -384,6 +403,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_1mbv1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutralleft")
 }],
 "loop": true,
 "name": &"run-left",
@@ -398,6 +420,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_p4mmg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutralright")
 }],
 "loop": true,
 "name": &"run-right",
@@ -412,6 +437,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_lt6c7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutralup")
 }],
 "loop": true,
 "name": &"run-up",
@@ -426,6 +454,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tgfo6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutraldown")
 }],
 "loop": true,
 "name": &"walk-down",
@@ -440,6 +471,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_x6yum")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutralleft")
 }],
 "loop": true,
 "name": &"walk-left",
@@ -454,6 +488,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fel0r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutralright")
 }],
 "loop": true,
 "name": &"walk-right",
@@ -468,6 +505,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_amlm5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_neutralup")
 }],
 "loop": true,
 "name": &"walk-up",

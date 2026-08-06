@@ -1139,7 +1139,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_flm04")
-start_level = "uid://b70sj1xr15rx7"
+start_level = "res://scenes/levels/FringeportDocks.tscn"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
