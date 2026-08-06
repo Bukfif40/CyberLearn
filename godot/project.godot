@@ -47,7 +47,7 @@ window/stretch/scale_mode="integer"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/dialogue_manager/plugin.cfg")
 
 [filesystem]
 
@@ -166,7 +166,7 @@ inventory={
 [internationalization]
 
 locale/translations=PackedStringArray("res://local/translations.en.translation", "res://local/translations.it.translation")
-locale/translations_pot_files=PackedStringArray("res://dialogues/start.dialogue", "res://dialogues/commons.dialogue")
+locale/translations_pot_files=PackedStringArray("res://dialogues/start.dialogue", "res://dialogues/commons.dialogue", "res://dialogues/kessler.dialogue")
 
 [layer_names]
 

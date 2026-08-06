@@ -1,13 +1,27 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/props/case_trigger.gd" id="1_trigger"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
 size = Vector2(32, 32)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
-bg_color = Color(0.098, 0.161, 0.129, 1)
-border_color = Color(0.298, 0.933, 0.573, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_desk"]
+bg_color = Color(0.298, 0.212, 0.145, 1)
+border_color = Color(0.1, 0.1, 0.1, 1)
+border_width_top = 1
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_keyboard"]
+bg_color = Color(0.145, 0.157, 0.176, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_left = 1
+corner_radius_bottom_right = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_monitor_body"]
+bg_color = Color(0.176, 0.188, 0.204, 1)
+border_color = Color(0.078, 0.086, 0.098, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -17,10 +31,13 @@ corner_radius_top_right = 2
 corner_radius_bottom_left = 2
 corner_radius_bottom_right = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_base"]
-bg_color = Color(0.204, 0.216, 0.235, 1)
-corner_radius_top_left = 1
-corner_radius_top_right = 1
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
+bg_color = Color(0.067, 0.043, 0.043, 1)
+border_color = Color(0.902, 0.298, 0.298, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 
 [node name="CaseTrigger" type="Area2D"]
 collision_layer = 0
@@ -32,38 +49,60 @@ script = ExtResource("1_trigger")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_trigger")
 
-[node name="Base" type="Panel" parent="."]
-offset_left = -9.0
-offset_top = -6.0
-offset_right = 9.0
-offset_bottom = 4.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_base")
+[node name="Desk" type="Panel" parent="."]
+offset_left = -13.0
+offset_top = -2.0
+offset_right = 13.0
+offset_bottom = 8.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_desk")
 
-[node name="Screen" type="Panel" parent="."]
-offset_left = -10.0
-offset_top = -26.0
-offset_right = 10.0
-offset_bottom = -6.0
+[node name="Keyboard" type="Panel" parent="."]
+offset_left = -8.0
+offset_top = -4.0
+offset_right = 8.0
+offset_bottom = -1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_keyboard")
+
+[node name="Stand" type="Panel" parent="."]
+offset_left = -2.0
+offset_top = -12.0
+offset_right = 2.0
+offset_bottom = -4.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_keyboard")
+
+[node name="Monitor" type="Panel" parent="."]
+offset_left = -11.0
+offset_top = -30.0
+offset_right = 11.0
+offset_bottom = -12.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_monitor_body")
+
+[node name="Screen" type="Panel" parent="Monitor"]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 19.0
+offset_bottom = 15.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_screen")
 
-[node name="ScreenGlyph" type="Label" parent="Screen"]
+[node name="ScreenGlyph" type="Label" parent="Monitor/Screen"]
 layout_mode = 0
-offset_left = 0.0
-offset_top = -2.0
-offset_right = 20.0
-offset_bottom = 20.0
-theme_override_colors/font_color = Color(0.298, 0.933, 0.573, 1)
-theme_override_font_sizes/font_size = 13
+offset_left = -1.0
+offset_top = -3.0
+offset_right = 17.0
+offset_bottom = 15.0
+theme_override_colors/font_color = Color(0.98, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 10
 horizontal_alignment = 1
 vertical_alignment = 1
-text = "@"
+text = "!"
 
 [node name="Prompt" type="Label" parent="."]
 visible = false
 offset_left = -20.0
-offset_top = -42.0
+offset_top = -46.0
 offset_right = 20.0
-offset_bottom = -26.0
+offset_bottom = -30.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 12
 theme_override_constants/outline_size = 3
