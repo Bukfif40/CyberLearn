@@ -40,7 +40,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uy0d5"]
-bg_color = Color(0, 0, 0, 0.784314)
+bg_color = Color(0.043, 0.047, 0.078, 0.92)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -49,6 +49,19 @@ corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
+border_color = Color(0.4, 0.55, 0.75, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_namebox"]
+bg_color = Color(0.067, 0.075, 0.11, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+border_color = Color(0.85, 0.4, 0.35, 0.9)
 
 [sub_resource type="Theme" id="Theme_vnod2"]
 default_font_size = 20
@@ -120,6 +133,7 @@ offset_left = 20.0
 offset_top = 225.0
 offset_right = 180.0
 offset_bottom = 255.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_namebox")
 
 [node name="MarginContainer" type="MarginContainer" parent="Balloon/NameContainer" unique_id=744730698]
 clip_contents = true
