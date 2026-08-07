@@ -16,13 +16,33 @@
 [ext_resource type="Texture2D" path="res://assets/tiles/dock_crane.png" id="10_ykqf0"]
 [ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="11_8cbpa"]
 [ext_resource type="Texture2D" path="res://assets/tiles/dock_fence.png" id="11_sej5m"]
+[ext_resource type="Texture2D" path="res://assets/tiles/container2_c_white.png" id="11_wxahx"]
 [ext_resource type="Texture2D" path="res://assets/tiles/dock_crate.png" id="12_nca5x"]
+[ext_resource type="Texture2D" path="res://assets/tiles/container2_c_navy1.png" id="13_p0orf"]
 [ext_resource type="Texture2D" path="res://assets/tiles/dock_warning_sign.png" id="13_uqg6s"]
 [ext_resource type="Script" path="res://scenes/props/npc_talker.gd" id="17_nca5x"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_forklift.png" id="18_63sve"]
 [ext_resource type="Texture2D" path="res://entities/npcs/kessler_idle.png" id="18_uqg6s"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_generator.png" id="19_7ejv7"]
 [ext_resource type="Texture2D" path="res://entities/npcs/mira_idle.png" id="19_8cbpa"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_cable_reel.png" id="20_h7nnu"]
 [ext_resource type="Resource" path="res://dialogues/kessler.dialogue" id="20_kessler"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_tool_box.png" id="21_x8dkd"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_ups_cabinet.png" id="22_xijba"]
 [ext_resource type="Texture2D" path="res://assets/tiles/rain_streak.png" id="23_0uobx"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_server_rack.png" id="23_r2wo6"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_bollard.png" id="24_a2j0s"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_traffic_cone2.png" id="25_vylpp"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_dumpster.png" id="26_cu2su"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_wooden_crate.png" id="27_whtcw"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_metal_crate.png" id="28_vjkxk"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_barrel_blue.png" id="29_bwj4o"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_barrel_rust.png" id="30_6h358"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_pallet.png" id="31_p3qwo"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_warning_sign2.png" id="32_yjsnk"]
+[ext_resource type="Texture2D" path="res://assets/tiles/container2_meridian.png" id="33_01acl"]
+[ext_resource type="Texture2D" path="res://assets/tiles/container2_harbor_logistics.png" id="34_vqfyd"]
+[ext_resource type="Texture2D" path="res://assets/tiles/container2_void.png" id="35_y8bo4"]
 
 [sub_resource type="Gradient" id="Gradient_kkr4y"]
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
@@ -194,7 +214,7 @@ texture = ExtResource("9_gray1")
 
 [node name="Container3" type="Sprite2D" parent="Props" unique_id=1002242187]
 position = Vector2(528, 128)
-texture = ExtResource("9_5kib5")
+texture = ExtResource("11_wxahx")
 
 [node name="Container4" type="Sprite2D" parent="Props" unique_id=1088627967]
 position = Vector2(144, 256)
@@ -202,7 +222,7 @@ texture = ExtResource("9_rust1")
 
 [node name="Container5" type="Sprite2D" parent="Props" unique_id=1417323972]
 position = Vector2(336, 256)
-texture = ExtResource("9_5kib5")
+texture = ExtResource("13_p0orf")
 
 [node name="Container6" type="Sprite2D" parent="Props" unique_id=1660846669]
 position = Vector2(528, 256)
@@ -272,6 +292,82 @@ texture_scale = 0.85
 position = Vector2(608, 252)
 color = Color(0.08, 0.08, 0.1, 1)
 polygon = PackedVector2Array(-2, -42, 2, -42, 2, 0, -2, 0)
+
+[node name="ForkliftProp" type="Sprite2D" parent="Props" unique_id=1735869865]
+position = Vector2(700, 150)
+texture = ExtResource("18_63sve")
+
+[node name="GeneratorProp" type="Sprite2D" parent="Props" unique_id=1713911889]
+position = Vector2(700, 220)
+texture = ExtResource("19_7ejv7")
+
+[node name="CableReelProp" type="Sprite2D" parent="Props" unique_id=620141565]
+position = Vector2(30, 250)
+texture = ExtResource("20_h7nnu")
+
+[node name="ToolBoxProp" type="Sprite2D" parent="Props" unique_id=1503762829]
+position = Vector2(700, 350)
+texture = ExtResource("21_x8dkd")
+
+[node name="UpsCabinetProp" type="Sprite2D" parent="Props" unique_id=1161843032]
+position = Vector2(600, 270)
+texture = ExtResource("22_xijba")
+
+[node name="ServerRackProp" type="Sprite2D" parent="Props" unique_id=1580598055]
+position = Vector2(710, 280)
+texture = ExtResource("23_r2wo6")
+
+[node name="BollardProp1" type="Sprite2D" parent="Props" unique_id=803440019]
+position = Vector2(250, 195)
+texture = ExtResource("24_a2j0s")
+
+[node name="BollardProp2" type="Sprite2D" parent="Props" unique_id=1655997900]
+position = Vector2(450, 195)
+texture = ExtResource("24_a2j0s")
+
+[node name="TrafficConeProp" type="Sprite2D" parent="Props" unique_id=1871847048]
+position = Vector2(350, 195)
+texture = ExtResource("25_vylpp")
+
+[node name="DumpsterProp" type="Sprite2D" parent="Props" unique_id=16766304]
+position = Vector2(60, 350)
+texture = ExtResource("26_cu2su")
+
+[node name="WoodenCrateProp2" type="Sprite2D" parent="Props" unique_id=835296086]
+position = Vector2(720, 400)
+texture = ExtResource("27_whtcw")
+
+[node name="MetalCrateProp" type="Sprite2D" parent="Props" unique_id=1951622159]
+position = Vector2(680, 400)
+texture = ExtResource("28_vjkxk")
+
+[node name="BarrelBlueProp" type="Sprite2D" parent="Props" unique_id=1561874047]
+position = Vector2(45, 300)
+texture = ExtResource("29_bwj4o")
+
+[node name="BarrelRustProp" type="Sprite2D" parent="Props" unique_id=1759058493]
+position = Vector2(70, 300)
+texture = ExtResource("30_6h358")
+
+[node name="PalletProp" type="Sprite2D" parent="Props" unique_id=1041990436]
+position = Vector2(150, 350)
+texture = ExtResource("31_p3qwo")
+
+[node name="WarningSignProp2" type="Sprite2D" parent="Props" unique_id=534639227]
+position = Vector2(200, 350)
+texture = ExtResource("32_yjsnk")
+
+[node name="MeridianBrandProp" type="Sprite2D" parent="Props" unique_id=2092501674]
+position = Vector2(250, 100)
+texture = ExtResource("33_01acl")
+
+[node name="HarborLogisticsProp" type="Sprite2D" parent="Props" unique_id=474280994]
+position = Vector2(450, 100)
+texture = ExtResource("34_vqfyd")
+
+[node name="VoidBrandProp" type="Sprite2D" parent="Props" unique_id=2140481096]
+position = Vector2(380, 450)
+texture = ExtResource("35_y8bo4")
 
 [node name="Entities" type="Node2D" parent="." unique_id=1698620646]
 y_sort_enabled = true
