@@ -110,9 +110,12 @@ API itself.
 
 ### diffusers (local generation, no separate server, needs a real GPU)
 
-If you have a capable GPU, this runs SDXL + an LCM-LoRA (for fast ~8-step
-inference instead of the usual ~30) + the pixel-art-xl LoRA directly inside
-`server.py` itself — no ComfyUI app to install and keep running separately:
+If you have a GPU (even a modest one), this runs SDXL + an LCM-LoRA (for
+fast ~8-step inference instead of the usual ~30) + the pixel-art-xl LoRA
+directly inside `server.py` itself — no ComfyUI app to install and keep
+running separately, and unlike the `huggingface` provider it actually loads
+the real pixel-art-xl LoRA file rather than routing through a hosted
+provider's own catalog:
 
 1. `pip install diffusers transformers accelerate torch` — get a CUDA build
    of `torch` matching your GPU/driver from https://pytorch.org (the plain
@@ -122,18 +125,26 @@ inference instead of the usual ~30) + the pixel-art-xl LoRA directly inside
    `godot/tools/pixel_editor/pixel-art-xl.safetensors`, or point
    `DIFFUSERS_PIXEL_LORA` at wherever you saved it.
 3. Start Pixel Forge with `AI_PROVIDER=diffusers`. The first "Generate seed"
-   click loads the whole pipeline onto your GPU (a minute or two, one-time
-   per server run) and every request after that is fast. Override
+   click loads the whole pipeline (a minute or two, one-time per server
+   run) and every request after that is faster. Override
    `DIFFUSERS_MODEL_ID` / `DIFFUSERS_LCM_LORA` / `DIFFUSERS_DEVICE` /
    `DIFFUSERS_STEPS` / `DIFFUSERS_GUIDANCE` / `DIFFUSERS_LCM_WEIGHT` /
    `DIFFUSERS_PIXEL_WEIGHT` if you need something other than the defaults.
 
+**Limited VRAM (4-6GB laptop GPUs):** by default, on `cuda` this enables
+`enable_model_cpu_offload()`, which streams model weights between CPU RAM
+and GPU VRAM as each part of the pipeline runs, instead of loading the
+whole ~7GB pipeline onto the GPU at once. This is slower per image but
+fits where a full GPU load would out-of-memory. If your GPU has plenty of
+VRAM (12GB+) and you'd rather trade RAM traffic for speed, disable it with
+`DIFFUSERS_CPU_OFFLOAD=0`.
+
 Note: this was written against `diffusers`' documented `DiffusionPipeline` +
-`LCMScheduler` + multi-LoRA `set_adapters()` API but hasn't been exercised
-against a live GPU in the environment that built it (no GPU available
-there) — if it errors on your machine, the error from `diffusers`/`torch`
-itself should point at what needs adjusting (a missing package, a CUDA
-mismatch, a wrong LoRA path).
+`LCMScheduler` + multi-LoRA `set_adapters()` + `enable_model_cpu_offload()`
+API but hasn't been exercised against a live GPU in the environment that
+built it (no GPU available there) — if it errors on your machine, the
+error from `diffusers`/`torch` itself should point at what needs adjusting
+(a missing package, a CUDA mismatch, a wrong LoRA path).
 
 ## Notes
 

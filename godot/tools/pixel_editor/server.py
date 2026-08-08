@@ -47,15 +47,31 @@ which underlying provider HF routes the call to with HF_PROVIDER
 
   AI_PROVIDER=huggingface HF_TOKEN=hf_... HF_PROVIDER=fal-ai python3 server.py
 
+NOTE: in practice, fal-ai's hosted catalog may silently route to its own
+generic base SDXL model instead of genuinely applying the requested
+pixel-art-xl LoRA (observed: requests landing on
+router.huggingface.co/fal-ai/fal-ai/fast-sdxl rather than the LoRA) -
+treat huggingface's output as a rougher starting point than comfyui/
+diffusers, which load the actual LoRA file themselves. Free-tier
+monthly credits are also small and are shared across all Inference
+Providers usage on your HF account.
+
 diffusers runs SDXL + an LCM-LoRA (for fast ~8-step inference) + the
 pixel-art-xl LoRA entirely in-process on your own GPU via HuggingFace's
 `diffusers` library - no separate server (unlike comfyui), no API key,
 no network calls after the models are first downloaded/cached. The
 pipeline is loaded once, lazily, on the first "Generate seed" request
-(this takes a minute or two), then stays resident in GPU memory for
-every request after that:
+(this takes a minute or two), then stays resident in memory for every
+request after that:
 
   AI_PROVIDER=diffusers python3 server.py
+
+On a GPU with limited VRAM (e.g. 4-6GB laptop cards), the pipeline
+defaults to diffusers' enable_model_cpu_offload(), which streams model
+weights between CPU RAM and GPU VRAM as needed instead of loading the
+full ~7GB pipeline onto the GPU at once - slower per-image, but fits
+where a naive .to("cuda") would OOM. Set DIFFUSERS_CPU_OFFLOAD=0 to
+disable this and force a full GPU load if you have plenty of VRAM.
 
 Needs `pip install diffusers transformers accelerate torch` (a CUDA
 build of torch matching your GPU/driver) and the pixel-art-xl LoRA
@@ -343,7 +359,9 @@ def _get_diffusers_pipeline():
         )
 
     print(f"[pixel-forge] loading {model_id} on {device} (this can take a minute)...")
-    load_kwargs = {"variant": "fp16"} if device == "cuda" else {}
+    load_kwargs = {"torch_dtype": dtype}
+    if device == "cuda":
+        load_kwargs["variant"] = "fp16"
     pipe = DiffusionPipeline.from_pretrained(model_id, **load_kwargs)
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
 
@@ -352,7 +370,18 @@ def _get_diffusers_pipeline():
     lcm_weight = float(os.environ.get("DIFFUSERS_LCM_WEIGHT", "1.0"))
     pixel_weight = float(os.environ.get("DIFFUSERS_PIXEL_WEIGHT", "1.2"))
     pipe.set_adapters(["lora", "pixel"], adapter_weights=[lcm_weight, pixel_weight])
-    pipe.to(device=device, dtype=dtype)
+
+    # On a GPU with limited VRAM, loading the whole ~7GB pipeline onto it at
+    # once (pipe.to(device)) will OOM. enable_model_cpu_offload() keeps
+    # weights in CPU RAM and streams each submodule onto the GPU only while
+    # it's actively running - diffusers' own well-established answer to
+    # this, unlike ComfyUI's newer experimental disk-streaming path.
+    default_offload = "1" if device == "cuda" else "0"
+    cpu_offload = os.environ.get("DIFFUSERS_CPU_OFFLOAD", default_offload) == "1"
+    if cpu_offload:
+        pipe.enable_model_cpu_offload()
+    else:
+        pipe.to(device=device, dtype=dtype)
 
     print("[pixel-forge] diffusers pipeline ready")
     _diffusers_pipe = pipe
