@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://eb1o0ddminvq"
+path="res://.godot/imported/kessler.dialogue-1cef7b6a194ba2a5f22f784d59f1e277.tres"
+
+[deps]
+
+source_file="res://dialogues/kessler.dialogue"
+dest_files=["res://.godot/imported/kessler.dialogue-1cef7b6a194ba2a5f22f784d59f1e277.tres"]
+
+[params]
+
+defaults=true

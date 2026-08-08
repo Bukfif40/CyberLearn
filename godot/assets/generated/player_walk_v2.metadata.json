@@ -1,0 +1,123 @@
+{
+	"animation_name": "four_angle_walking",
+	"animation_style": "four_angle_walking",
+	"animation_type": "",
+	"columns": 4,
+	"directions": [
+		"row_1",
+		"row_2",
+		"row_3",
+		"row_4"
+	],
+	"frame_count": 16,
+	"frame_height": 48,
+	"frame_paths": [],
+	"frame_regions": [
+		{
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 0
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 0
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 0
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 48
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 48
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 48
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 48
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 96
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 96
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 96
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 96
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 144
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 144
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 144
+		},
+		{
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 144
+		}
+	],
+	"frame_width": 48,
+	"name": "player_walk_v2",
+	"prompt": "top-down RPG character walking in 4 directions (down-facing-camera, left, right, up-away-from-camera). Chibi kid with oversized head (1/3 of body height). Purple hoodie with hood up, 2-tone cel-shaded bands (lighter purple highlight on top, darker purple shadow on sides). Clean 1-pixel black outlines around entire silhouette and between body parts. Tan skin face with visible simple black dot eyes, brown hair visible under hood. Dark navy pants with shadow band. White sneakers with gray soles. Each direction row has 4 distinct walk frames showing actual leg and arm swing movement (not the same pose). Professional 16-bit RPG quality matching Kessler and Mira NPCs from this project. Transparent background.",
+	"rows": 4,
+	"source_image": "",
+	"source_tool": "generate_animation",
+	"spritesheet_height": 192,
+	"spritesheet_path": "res://assets/generated/player_walk_v2.png",
+	"spritesheet_width": 192,
+	"type": "animation"
+}
