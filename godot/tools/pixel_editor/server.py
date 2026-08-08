@@ -16,11 +16,53 @@ via environment variables before starting:
 
   OPENAI_API_KEY=sk-...                                                                  python3 server.py
   AI_PROVIDER=replicate REPLICATE_API_TOKEN=r8_... REPLICATE_MODEL_VERSION=<version-hash> python3 server.py
+  AI_PROVIDER=comfyui python3 server.py
+  AI_PROVIDER=huggingface HF_TOKEN=hf_...                                                python3 server.py
 
 REPLICATE_MODEL_VERSION must be a version hash you copy from the model's
 page on replicate.com (e.g. a pixel-art-tuned SDXL model) - there is
 deliberately no hardcoded default, since pinned versions change over time
 and a stale guess would just fail confusingly.
+
+comfyui calls a local ComfyUI instance (default http://127.0.0.1:8188,
+override with COMFYUI_URL) running an SDXL checkpoint + a pixel-art LoRA
+(e.g. pixel-art-xl) - free, unlimited, no API key, runs on your own GPU.
+Configure which checkpoint/LoRA to use if the defaults below don't match
+what you've installed:
+
+  AI_PROVIDER=comfyui COMFYUI_CHECKPOINT=sd_xl_base_1.0.safetensors COMFYUI_LORA=pixel-art-xl.safetensors python3 server.py
+
+NOTE: the comfyui workflow graph below is written against ComfyUI's
+documented API shape but has not been tested against a live instance in
+this environment (no GPU available here) - if node names/inputs have
+shifted in your ComfyUI version, or your checkpoint's file/LoRA are
+named differently, expect to need one round of debugging against the
+actual error message ComfyUI returns.
+
+huggingface uses HuggingFace's hosted "Inference Providers" routing (not
+your own GPU) to call the nerijs/pixel-art-xl model - needs `pip install
+huggingface_hub` and a token from huggingface.co/settings/tokens. Pick
+which underlying provider HF routes the call to with HF_PROVIDER
+(default fal-ai, matching the model's own usage snippet on its HF page):
+
+  AI_PROVIDER=huggingface HF_TOKEN=hf_... HF_PROVIDER=fal-ai python3 server.py
+
+diffusers runs SDXL + an LCM-LoRA (for fast ~8-step inference) + the
+pixel-art-xl LoRA entirely in-process on your own GPU via HuggingFace's
+`diffusers` library - no separate server (unlike comfyui), no API key,
+no network calls after the models are first downloaded/cached. The
+pipeline is loaded once, lazily, on the first "Generate seed" request
+(this takes a minute or two), then stays resident in GPU memory for
+every request after that:
+
+  AI_PROVIDER=diffusers python3 server.py
+
+Needs `pip install diffusers transformers accelerate torch` (a CUDA
+build of torch matching your GPU/driver) and the pixel-art-xl LoRA
+weights file downloaded locally - see README.md for the full setup.
+Override DIFFUSERS_MODEL_ID / DIFFUSERS_LCM_LORA / DIFFUSERS_PIXEL_LORA
+/ DIFFUSERS_DEVICE / DIFFUSERS_STEPS / DIFFUSERS_GUIDANCE if your setup
+differs from the defaults below.
 
 Run: python3 server.py [port]   (defaults to 8642)
 """
@@ -28,10 +70,12 @@ import base64
 import io
 import json
 import os
+import random
 import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -126,6 +170,210 @@ def generate_openai(prompt, api_key):
     return base64.b64decode(b64)
 
 
+def _comfyui_workflow(prompt, checkpoint, lora, lora_strength):
+    """A minimal SDXL + LoRA txt2img graph in ComfyUI's node-graph API
+    format. Node numbering/wiring follows ComfyUI's standard default
+    workflow shape (as exported via its "Save (API Format)" option)."""
+    return {
+        "4": {
+            "class_type": "CheckpointLoaderSimple",
+            "inputs": {"ckpt_name": checkpoint},
+        },
+        "10": {
+            "class_type": "LoraLoader",
+            "inputs": {
+                "lora_name": lora,
+                "strength_model": lora_strength,
+                "strength_clip": lora_strength,
+                "model": ["4", 0],
+                "clip": ["4", 1],
+            },
+        },
+        "5": {
+            "class_type": "EmptyLatentImage",
+            "inputs": {"width": 1024, "height": 1024, "batch_size": 1},
+        },
+        "6": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {
+                "text": f"pixel art, {prompt}, game asset, flat colors, no anti-aliasing",
+                "clip": ["10", 1],
+            },
+        },
+        "7": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {
+                "text": "blurry, photographic, 3d render, smooth gradient, anti-aliased",
+                "clip": ["10", 1],
+            },
+        },
+        "3": {
+            "class_type": "KSampler",
+            "inputs": {
+                "seed": random.randint(0, 2 ** 32 - 1),
+                "steps": 30,
+                "cfg": 7.0,
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "denoise": 1.0,
+                "model": ["10", 0],
+                "positive": ["6", 0],
+                "negative": ["7", 0],
+                "latent_image": ["5", 0],
+            },
+        },
+        "8": {
+            "class_type": "VAEDecode",
+            "inputs": {"samples": ["3", 0], "vae": ["4", 2]},
+        },
+        "9": {
+            "class_type": "SaveImage",
+            "inputs": {"filename_prefix": "pixel_forge", "images": ["8", 0]},
+        },
+    }
+
+
+def generate_comfyui(prompt):
+    base_url = os.environ.get("COMFYUI_URL", "http://127.0.0.1:8188").rstrip("/")
+    checkpoint = os.environ.get("COMFYUI_CHECKPOINT", "sd_xl_base_1.0.safetensors")
+    lora = os.environ.get("COMFYUI_LORA", "pixel-art-xl.safetensors")
+    lora_strength = float(os.environ.get("COMFYUI_LORA_STRENGTH", "1.0"))
+
+    workflow = _comfyui_workflow(prompt, checkpoint, lora, lora_strength)
+    req = urllib.request.Request(
+        f"{base_url}/prompt",
+        data=json.dumps({"prompt": workflow}).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            queued = json.loads(resp.read())
+    except urllib.error.URLError as e:
+        raise RuntimeError(
+            f"Could not reach ComfyUI at {base_url} - is it running? ({e})"
+        )
+    prompt_id = queued["prompt_id"]
+
+    for _ in range(180):
+        time.sleep(1)
+        with urllib.request.urlopen(f"{base_url}/history/{prompt_id}", timeout=30) as resp:
+            history = json.loads(resp.read())
+        entry = history.get(prompt_id)
+        if not entry:
+            continue
+        outputs = entry.get("outputs", {})
+        image_info = None
+        for node_output in outputs.values():
+            images = node_output.get("images")
+            if images:
+                image_info = images[0]
+                break
+        if image_info:
+            params = urllib.parse.urlencode({
+                "filename": image_info["filename"],
+                "subfolder": image_info.get("subfolder", ""),
+                "type": image_info.get("type", "output"),
+            })
+            with urllib.request.urlopen(f"{base_url}/view?{params}", timeout=30) as img_resp:
+                return img_resp.read()
+    raise RuntimeError("ComfyUI generation timed out")
+
+
+def generate_huggingface(prompt, api_key):
+    # Imported lazily so the other three providers don't require this
+    # dependency to be installed.
+    try:
+        from huggingface_hub import InferenceClient
+    except ImportError:
+        raise RuntimeError(
+            "huggingface_hub is not installed. Run: pip install huggingface_hub"
+        )
+
+    provider = os.environ.get("HF_PROVIDER", "fal-ai")
+    client = InferenceClient(provider=provider, api_key=api_key)
+    image = client.text_to_image(
+        f"pixel art, {prompt}, game asset, flat colors, no anti-aliasing, transparent background",
+        model="nerijs/pixel-art-xl",
+    )
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
+
+
+_diffusers_pipe = None
+
+
+def _get_diffusers_pipeline():
+    """Loads the SDXL + LCM-LoRA + pixel-art-xl pipeline once and caches it
+    at module scope, since loading SDXL onto a GPU takes real time - we
+    don't want to redo that on every single "Generate seed" click."""
+    global _diffusers_pipe
+    if _diffusers_pipe is not None:
+        return _diffusers_pipe
+
+    try:
+        import torch
+        from diffusers import DiffusionPipeline, LCMScheduler
+    except ImportError:
+        raise RuntimeError(
+            "diffusers/torch are not installed. Run: pip install diffusers "
+            "transformers accelerate torch (a CUDA build matching your GPU)"
+        )
+
+    model_id = os.environ.get("DIFFUSERS_MODEL_ID", "stabilityai/stable-diffusion-xl-base-1.0")
+    lcm_lora_id = os.environ.get("DIFFUSERS_LCM_LORA", "latent-consistency/lcm-lora-sdxl")
+    pixel_lora_path = os.environ.get(
+        "DIFFUSERS_PIXEL_LORA", os.path.join(ROOT, "pixel-art-xl.safetensors")
+    )
+    device = os.environ.get("DIFFUSERS_DEVICE", "cuda")
+    dtype = torch.float16 if device == "cuda" else torch.float32
+
+    if device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError(
+            "DIFFUSERS_DEVICE=cuda but torch reports no CUDA GPU available. "
+            "Set DIFFUSERS_DEVICE=cpu to run (much slower) or check your "
+            "torch/driver install."
+        )
+    if not os.path.isfile(pixel_lora_path):
+        raise RuntimeError(
+            f"pixel-art-xl LoRA not found at {pixel_lora_path}. Download it "
+            "and set DIFFUSERS_PIXEL_LORA to its path, or drop the file at "
+            "that default location."
+        )
+
+    print(f"[pixel-forge] loading {model_id} on {device} (this can take a minute)...")
+    load_kwargs = {"variant": "fp16"} if device == "cuda" else {}
+    pipe = DiffusionPipeline.from_pretrained(model_id, **load_kwargs)
+    pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
+
+    pipe.load_lora_weights(lcm_lora_id, adapter_name="lora")
+    pipe.load_lora_weights(pixel_lora_path, adapter_name="pixel")
+    lcm_weight = float(os.environ.get("DIFFUSERS_LCM_WEIGHT", "1.0"))
+    pixel_weight = float(os.environ.get("DIFFUSERS_PIXEL_WEIGHT", "1.2"))
+    pipe.set_adapters(["lora", "pixel"], adapter_weights=[lcm_weight, pixel_weight])
+    pipe.to(device=device, dtype=dtype)
+
+    print("[pixel-forge] diffusers pipeline ready")
+    _diffusers_pipe = pipe
+    return pipe
+
+
+def generate_diffusers(prompt):
+    pipe = _get_diffusers_pipeline()
+    steps = int(os.environ.get("DIFFUSERS_STEPS", "8"))
+    guidance = float(os.environ.get("DIFFUSERS_GUIDANCE", "1.5"))
+    image = pipe(
+        prompt=f"pixel art, {prompt}, game asset, flat colors",
+        negative_prompt="3d render, realistic, photographic, blurry, anti-aliased, smooth gradient",
+        num_inference_steps=steps,
+        guidance_scale=guidance,
+    ).images[0]
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
+
+
 def generate_raw_image(prompt):
     provider = os.environ.get("AI_PROVIDER", "openai").lower()
     if provider == "replicate":
@@ -138,9 +386,18 @@ def generate_raw_image(prompt):
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY is not set")
         return generate_openai(prompt, api_key)
+    if provider == "comfyui":
+        return generate_comfyui(prompt)
+    if provider == "huggingface":
+        api_key = os.environ.get("HF_TOKEN")
+        if not api_key:
+            raise RuntimeError("HF_TOKEN is not set")
+        return generate_huggingface(prompt, api_key)
+    if provider == "diffusers":
+        return generate_diffusers(prompt)
     raise RuntimeError(
-        "No AI provider configured. Set AI_PROVIDER=replicate|openai and the "
-        "matching API key env var before starting the server."
+        "No AI provider configured. Set AI_PROVIDER=replicate|openai|comfyui|huggingface|diffusers "
+        "and the matching config before starting the server."
     )
 
 
