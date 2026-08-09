@@ -139,6 +139,15 @@ fits where a full GPU load would out-of-memory. If your GPU has plenty of
 VRAM (12GB+) and you'd rather trade RAM traffic for speed, disable it with
 `DIFFUSERS_CPU_OFFLOAD=0`.
 
+**Already have the checkpoint downloaded elsewhere (e.g. for ComfyUI)?**
+By default this provider downloads SDXL's diffusers-format snapshot from
+the Hub on first run — several GB, separate from any single-file
+`.safetensors` checkpoint you already have. Skip that redundant download
+by pointing `DIFFUSERS_CHECKPOINT_FILE` at your existing file:
+```
+$env:DIFFUSERS_CHECKPOINT_FILE="C:\path\to\sd_xl_base_1.0.safetensors"
+```
+
 Note: this was written against `diffusers`' documented `DiffusionPipeline` +
 `LCMScheduler` + multi-LoRA `set_adapters()` + `enable_model_cpu_offload()`
 API but hasn't been exercised against a live GPU in the environment that

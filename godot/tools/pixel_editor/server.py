@@ -73,6 +73,15 @@ full ~7GB pipeline onto the GPU at once - slower per-image, but fits
 where a naive .to("cuda") would OOM. Set DIFFUSERS_CPU_OFFLOAD=0 to
 disable this and force a full GPU load if you have plenty of VRAM.
 
+By default this downloads SDXL's multi-file diffusers-format snapshot
+from the Hub on first run (several GB, separate from any single-file
+.safetensors checkpoint you may already have for e.g. ComfyUI). If
+you'd rather reuse an already-downloaded single-file checkpoint and
+skip that redundant download entirely, point DIFFUSERS_CHECKPOINT_FILE
+at it:
+
+  DIFFUSERS_CHECKPOINT_FILE=C:\path\to\sd_xl_base_1.0.safetensors AI_PROVIDER=diffusers python3 server.py
+
 Needs `pip install diffusers transformers accelerate torch` (a CUDA
 build of torch matching your GPU/driver) and the pixel-art-xl LoRA
 weights file downloaded locally - see README.md for the full setup.
@@ -330,7 +339,7 @@ def _get_diffusers_pipeline():
 
     try:
         import torch
-        from diffusers import DiffusionPipeline, LCMScheduler
+        from diffusers import DiffusionPipeline, StableDiffusionXLPipeline, LCMScheduler
     except ImportError:
         raise RuntimeError(
             "diffusers/torch are not installed. Run: pip install diffusers "
@@ -338,6 +347,7 @@ def _get_diffusers_pipeline():
         )
 
     model_id = os.environ.get("DIFFUSERS_MODEL_ID", "stabilityai/stable-diffusion-xl-base-1.0")
+    checkpoint_file = os.environ.get("DIFFUSERS_CHECKPOINT_FILE")
     lcm_lora_id = os.environ.get("DIFFUSERS_LCM_LORA", "latent-consistency/lcm-lora-sdxl")
     pixel_lora_path = os.environ.get(
         "DIFFUSERS_PIXEL_LORA", os.path.join(ROOT, "pixel-art-xl.safetensors")
@@ -358,11 +368,21 @@ def _get_diffusers_pipeline():
             "that default location."
         )
 
-    print(f"[pixel-forge] loading {model_id} on {device} (this can take a minute)...")
-    load_kwargs = {"torch_dtype": dtype}
-    if device == "cuda":
-        load_kwargs["variant"] = "fp16"
-    pipe = DiffusionPipeline.from_pretrained(model_id, **load_kwargs)
+    if checkpoint_file:
+        # Load the base model from an already-downloaded single-file
+        # checkpoint (e.g. the same sd_xl_base_1.0.safetensors used by
+        # ComfyUI) instead of re-downloading the multi-file diffusers-format
+        # snapshot from the Hub - avoids a second multi-GB download.
+        if not os.path.isfile(checkpoint_file):
+            raise RuntimeError(f"DIFFUSERS_CHECKPOINT_FILE not found at {checkpoint_file}")
+        print(f"[pixel-forge] loading local checkpoint {checkpoint_file} on {device} (this can take a minute)...")
+        pipe = StableDiffusionXLPipeline.from_single_file(checkpoint_file, torch_dtype=dtype)
+    else:
+        print(f"[pixel-forge] loading {model_id} on {device} (this can take a minute)...")
+        load_kwargs = {"torch_dtype": dtype}
+        if device == "cuda":
+            load_kwargs["variant"] = "fp16"
+        pipe = DiffusionPipeline.from_pretrained(model_id, **load_kwargs)
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
 
     pipe.load_lora_weights(lcm_lora_id, adapter_name="lora")
