@@ -340,15 +340,59 @@ function gridToCanvas(scale) {
 function loadImageIntoGrid(img) {
 	pushUndo();
 	const size = state.gridSize;
-	const off = document.createElement("canvas");
-	off.width = size;
-	off.height = size;
-	const ctx = off.getContext("2d");
-	ctx.imageSmoothingEnabled = false;
-	ctx.clearRect(0, 0, size, size);
-	ctx.drawImage(img, 0, 0, size, size);
-	const data = ctx.getImageData(0, 0, size, size).data;
-	state.pixels = new Uint8ClampedArray(data);
+
+	// Draw the source at its natural size first, then box-average it down
+	// to the grid ourselves. A single-step drawImage(img, 0, 0, size, size)
+	// with smoothing disabled uses nearest-neighbor sampling, which picks
+	// one source pixel per block and discards the rest - fine when the
+	// source is already close to the grid size (e.g. an AI-generated seed
+	// that Python already downsampled), but noisy/muddy for a big shrink
+	// like a full-resolution imported PNG down to a 32x32 grid.
+	const srcW = img.naturalWidth || img.width;
+	const srcH = img.naturalHeight || img.height;
+	const srcCanvas = document.createElement("canvas");
+	srcCanvas.width = srcW;
+	srcCanvas.height = srcH;
+	const srcCtx = srcCanvas.getContext("2d");
+	srcCtx.drawImage(img, 0, 0, srcW, srcH);
+	const srcData = srcCtx.getImageData(0, 0, srcW, srcH).data;
+
+	const out = new Uint8ClampedArray(size * size * 4);
+	const blockW = srcW / size;
+	const blockH = srcH / size;
+
+	for (let gy = 0; gy < size; gy++) {
+		const y0 = Math.floor(gy * blockH);
+		const y1 = Math.max(y0 + 1, Math.floor((gy + 1) * blockH));
+		for (let gx = 0; gx < size; gx++) {
+			const x0 = Math.floor(gx * blockW);
+			const x1 = Math.max(x0 + 1, Math.floor((gx + 1) * blockW));
+
+			let r = 0, g = 0, b = 0, aSum = 0, count = 0;
+			for (let sy = y0; sy < y1; sy++) {
+				for (let sx = x0; sx < x1; sx++) {
+					const i = (sy * srcW + sx) * 4;
+					const alpha = srcData[i + 3];
+					// Weight RGB by alpha so transparent source pixels
+					// don't drag opaque edge colors toward black.
+					r += srcData[i] * alpha;
+					g += srcData[i + 1] * alpha;
+					b += srcData[i + 2] * alpha;
+					aSum += alpha;
+					count++;
+				}
+			}
+			const outI = (gy * size + gx) * 4;
+			if (aSum > 0) {
+				out[outI] = r / aSum;
+				out[outI + 1] = g / aSum;
+				out[outI + 2] = b / aSum;
+				out[outI + 3] = aSum / count;
+			}
+		}
+	}
+
+	state.pixels = out;
 	renderPixels();
 }
 
