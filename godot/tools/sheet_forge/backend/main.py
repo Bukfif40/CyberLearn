@@ -28,7 +28,7 @@ import json
 import os
 import sys
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
@@ -54,11 +54,23 @@ app.add_middleware(
 )
 
 
+@app.exception_handler(HTTPException)
+async def http_error_handler(request: Request, exc: HTTPException):
+    # FastAPI's default HTTPException body is {"detail": ...} - override to
+    # {"error": ...} so the response shape matches Pixel Forge's
+    # server.py convention and the frontend's error-reading code.
+    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+
+
 @app.exception_handler(Exception)
 async def generation_error_handler(request: Request, exc: Exception):
-    # Provider failures (missing API key, ComfyUI unreachable, invalid
-    # save category, etc.) all become a clean {"error": "..."} 400 instead
-    # of a 500 - same error shape as Pixel Forge's server.py.
+    # Belt-and-suspenders fallback for anything that isn't already caught
+    # and re-raised as an HTTPException below (the endpoints' own
+    # try/except is the primary path - HTTPException has guaranteed,
+    # well-tested interaction with CORSMiddleware, unlike relying solely
+    # on a handler for the bare Exception class, which was observed NOT
+    # reliably producing a CORS-safe response when a provider call raised
+    # from inside FastAPI's threadpool).
     return JSONResponse(status_code=400, content={"error": str(exc)})
 
 
@@ -108,95 +120,110 @@ def _png_b64(img: Image.Image) -> str:
 
 @app.post("/api/walkcycle/generate")
 def generate_walkcycle(req: WalkCycleRequest):
-    sheet_w, sheet_h = req.columns * req.frame_width, req.rows * req.frame_height
+    try:
+        sheet_w, sheet_h = req.columns * req.frame_width, req.rows * req.frame_height
 
-    full_prompt = (
-        f"top-down RPG character sprite sheet, {req.prompt}. "
-        f"Grid of {req.rows} rows x {req.columns} columns, one direction per "
-        f"row, each row showing {req.columns} distinct walk-cycle frames "
-        f"with actual leg and arm movement (not the same pose repeated). "
-        f"Clean pixel art, flat colors, 1-pixel black outlines, transparent "
-        f"background, uniform frame size, frames aligned to an exact grid."
-    )
+        full_prompt = (
+            f"top-down RPG character sprite sheet, {req.prompt}. "
+            f"Grid of {req.rows} rows x {req.columns} columns, one direction per "
+            f"row, each row showing {req.columns} distinct walk-cycle frames "
+            f"with actual leg and arm movement (not the same pose repeated). "
+            f"Clean pixel art, flat colors, 1-pixel black outlines, transparent "
+            f"background, uniform frame size, frames aligned to an exact grid."
+        )
 
-    raw = generate_raw_image(full_prompt)
-    sheet = _quantize_with_alpha(Image.open(io.BytesIO(raw)), (sheet_w, sheet_h), colors=32)
+        raw = generate_raw_image(full_prompt)
+        sheet = _quantize_with_alpha(Image.open(io.BytesIO(raw)), (sheet_w, sheet_h), colors=32)
 
-    frame_regions = []
-    for row in range(req.rows):
-        for col in range(req.columns):
-            frame_regions.append({
-                "x": col * req.frame_width,
-                "y": row * req.frame_height,
-                "w": req.frame_width,
-                "h": req.frame_height,
-            })
+        frame_regions = []
+        for row in range(req.rows):
+            for col in range(req.columns):
+                frame_regions.append({
+                    "x": col * req.frame_width,
+                    "y": row * req.frame_height,
+                    "w": req.frame_width,
+                    "h": req.frame_height,
+                })
 
-    metadata = {
-        "animation_name": "four_angle_walking" if req.rows == 4 else "walking",
-        "animation_style": "four_angle_walking" if req.rows == 4 else "walking",
-        "animation_type": "",
-        "columns": req.columns,
-        "directions": [f"row_{i + 1}" for i in range(req.rows)],
-        "frame_count": req.columns * req.rows,
-        "frame_height": req.frame_height,
-        "frame_paths": [],
-        "frame_regions": frame_regions,
-        "frame_width": req.frame_width,
-        "name": req.character_name,
-        "prompt": full_prompt,
-        "rows": req.rows,
-        "source_image": "",
-        "source_tool": "sheet_forge",
-        "spritesheet_height": sheet_h,
-        "spritesheet_path": f"res://assets/generated/{req.character_name}.png",
-        "spritesheet_width": sheet_w,
-        "type": "animation",
-    }
+        metadata = {
+            "animation_name": "four_angle_walking" if req.rows == 4 else "walking",
+            "animation_style": "four_angle_walking" if req.rows == 4 else "walking",
+            "animation_type": "",
+            "columns": req.columns,
+            "directions": [f"row_{i + 1}" for i in range(req.rows)],
+            "frame_count": req.columns * req.rows,
+            "frame_height": req.frame_height,
+            "frame_paths": [],
+            "frame_regions": frame_regions,
+            "frame_width": req.frame_width,
+            "name": req.character_name,
+            "prompt": full_prompt,
+            "rows": req.rows,
+            "source_image": "",
+            "source_tool": "sheet_forge",
+            "spritesheet_height": sheet_h,
+            "spritesheet_path": f"res://assets/generated/{req.character_name}.png",
+            "spritesheet_width": sheet_w,
+            "type": "animation",
+        }
 
-    return {"image_base64": _png_b64(sheet), "metadata": metadata}
+        return {"image_base64": _png_b64(sheet), "metadata": metadata}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/api/tileset/generate")
 def generate_tileset(req: TilesetRequest):
-    results = []
-    raw_images = {}
-    for variant in req.variants:
-        try:
-            raw = generate_raw_image(f"{req.style_prompt}, {variant} texture, seamless tileable")
-            raw_images[variant] = Image.open(io.BytesIO(raw)).convert("RGBA")
-        except Exception as e:
-            results.append({"variant": variant, "image_base64": None, "error": str(e)})
+    try:
+        results = []
+        raw_images = {}
+        for variant in req.variants:
+            try:
+                raw = generate_raw_image(f"{req.style_prompt}, {variant} texture, seamless tileable")
+                raw_images[variant] = Image.open(io.BytesIO(raw)).convert("RGBA")
+            except Exception as e:
+                results.append({"variant": variant, "image_base64": None, "error": str(e)})
 
-    palette_source = None
-    if raw_images:
-        # Composite every successful tile side-by-side and quantize once,
-        # so all tiles in the batch share one palette instead of each
-        # picking its own colors independently - keeps the set visually
-        # cohesive the way a hand-drawn tileset would be.
-        strip = Image.new("RGB", (128 * len(raw_images), 128), "white")
-        for i, img in enumerate(raw_images.values()):
-            strip.paste(img.convert("RGB").resize((128, 128), Image.BOX), (i * 128, 0))
-        palette_source = strip.quantize(colors=48, method=Image.MEDIANCUT)
+        palette_source = None
+        if raw_images:
+            # Composite every successful tile side-by-side and quantize once,
+            # so all tiles in the batch share one palette instead of each
+            # picking its own colors independently - keeps the set visually
+            # cohesive the way a hand-drawn tileset would be.
+            strip = Image.new("RGB", (128 * len(raw_images), 128), "white")
+            for i, img in enumerate(raw_images.values()):
+                strip.paste(img.convert("RGB").resize((128, 128), Image.BOX), (i * 128, 0))
+            palette_source = strip.quantize(colors=48, method=Image.MEDIANCUT)
 
-    for variant, img in raw_images.items():
-        try:
-            tile = _quantize_with_alpha(img, (req.tile_size, req.tile_size), colors=24, palette_source=palette_source)
-            results.append({"variant": variant, "image_base64": _png_b64(tile), "error": None})
-        except Exception as e:
-            results.append({"variant": variant, "image_base64": None, "error": str(e)})
+        for variant, img in raw_images.items():
+            try:
+                tile = _quantize_with_alpha(img, (req.tile_size, req.tile_size), colors=24, palette_source=palette_source)
+                results.append({"variant": variant, "image_base64": _png_b64(tile), "error": None})
+            except Exception as e:
+                results.append({"variant": variant, "image_base64": None, "error": str(e)})
 
-    return {"tiles": results}
+        return {"tiles": results}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/api/save")
 def save(req: SaveRequest):
-    raw = base64.b64decode(req.image_base64)
-    out_path = save_generated_image(req.category, req.filename, raw, ASSETS_DIR, ALLOWED_CATEGORIES)
+    try:
+        raw = base64.b64decode(req.image_base64)
+        out_path = save_generated_image(req.category, req.filename, raw, ASSETS_DIR, ALLOWED_CATEGORIES)
 
-    if req.metadata is not None:
-        meta_path = os.path.splitext(out_path)[0] + ".metadata.json"
-        with open(meta_path, "w") as f:
-            json.dump(req.metadata, f, indent=1)
+        if req.metadata is not None:
+            meta_path = os.path.splitext(out_path)[0] + ".metadata.json"
+            with open(meta_path, "w") as f:
+                json.dump(req.metadata, f, indent=1)
 
-    return {"path": os.path.relpath(out_path, GODOT_DIR)}
+        return {"path": os.path.relpath(out_path, GODOT_DIR)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

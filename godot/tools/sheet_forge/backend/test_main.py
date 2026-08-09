@@ -87,6 +87,25 @@ class WalkCycleTests(unittest.TestCase):
         self.assertEqual(meta["spritesheet_height"], 64)
         self.assertEqual(len(meta["frame_regions"]), 6)
 
+    @patch("main.generate_raw_image")
+    def test_provider_failure_returns_clean_error_json(self, mock_gen):
+        # Regression test for a real bug: a provider raising mid-request
+        # (e.g. a network reset reaching huggingface.co) was escaping the
+        # bare-Exception handler and crashing the ASGI connection instead
+        # of returning a normal JSON response - the browser saw this as
+        # "Failed to fetch" rather than a readable error message.
+        mock_gen.side_effect = RuntimeError("[WinError 10054] An existing connection was forcibly closed by the remote host")
+        resp = self.client.post("/api/walkcycle/generate", json={
+            "character_name": "test_hero",
+            "prompt": "a chibi hero",
+            "columns": 4,
+            "rows": 4,
+            "frame_width": 48,
+            "frame_height": 48,
+        })
+        self.assertEqual(resp.status_code, 400, resp.text)
+        self.assertIn("WinError 10054", resp.json()["error"])
+
 
 class TilesetTests(unittest.TestCase):
     def setUp(self):
