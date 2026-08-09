@@ -1,0 +1,75 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #1a1a1e;
+  color: #eee;
+}
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+}
+h1 { margin-bottom: 4px; }
+.subtitle { color: #999; margin-top: 0; }
+
+.mode-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+.mode-toggle button {
+  flex: 1;
+  padding: 10px;
+  background: #2a2a30;
+  border: 1px solid #444;
+  color: #ccc;
+  cursor: pointer;
+}
+.mode-toggle button.active { background: #5b4fd6; color: #fff; border-color: #5b4fd6; }
+
+.panel { display: flex; flex-direction: column; gap: 12px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #bbb; }
+input, textarea {
+  background: #26262c;
+  border: 1px solid #444;
+  color: #eee;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+button {
+  background: #5b4fd6;
+  border: none;
+  color: #fff;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+button:disabled { background: #444; cursor: not-allowed; }
+
+.error { color: #ff6b6b; }
+.status { color: #6bdc8f; }
+
+.result img.pixelated, .tile-card img.pixelated {
+  image-rendering: pixelated;
+  background: repeating-conic-gradient(#333 0% 25%, #2a2a2a 0% 50%) 50% / 16px 16px;
+}
+
+.variant-list { display: flex; flex-direction: column; gap: 6px; }
+.variant-row { display: flex; gap: 6px; }
+.variant-row input { flex: 1; }
+.variant-row button { flex: 0 0 auto; padding: 8px 12px; }
+
+.tile-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.tile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #222228;
+  padding: 10px;
+  border: 1px solid #333;
+}
