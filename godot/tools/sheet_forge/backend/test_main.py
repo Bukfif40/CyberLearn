@@ -106,6 +106,30 @@ class WalkCycleTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 400, resp.text)
         self.assertIn("WinError 10054", resp.json()["error"])
 
+    @patch("main.generate_raw_image")
+    def test_provider_failure_still_carries_cors_headers(self, mock_gen):
+        # The failure mode this guards against: an error response missing
+        # CORS headers looks like a network failure to a real browser
+        # ("Failed to fetch"), even though the server sent a normal, valid
+        # response. Simulate a real cross-origin request (an Origin header
+        # the Vite dev server would actually send) and confirm the error
+        # response comes back with Access-Control-Allow-Origin set.
+        mock_gen.side_effect = RuntimeError("[WinError 10054] connection reset")
+        resp = self.client.post(
+            "/api/walkcycle/generate",
+            json={
+                "character_name": "test_hero",
+                "prompt": "a chibi hero",
+                "columns": 4,
+                "rows": 4,
+                "frame_width": 48,
+                "frame_height": 48,
+            },
+            headers={"Origin": "http://localhost:5173"},
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.headers.get("access-control-allow-origin"), "http://localhost:5173")
+
 
 class TilesetTests(unittest.TestCase):
     def setUp(self):

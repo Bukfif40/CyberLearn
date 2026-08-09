@@ -28,7 +28,7 @@ import json
 import os
 import sys
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
@@ -54,23 +54,14 @@ app.add_middleware(
 )
 
 
-@app.exception_handler(HTTPException)
-async def http_error_handler(request: Request, exc: HTTPException):
-    # FastAPI's default HTTPException body is {"detail": ...} - override to
-    # {"error": ...} so the response shape matches Pixel Forge's
-    # server.py convention and the frontend's error-reading code.
-    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
-
-
 @app.exception_handler(Exception)
 async def generation_error_handler(request: Request, exc: Exception):
-    # Belt-and-suspenders fallback for anything that isn't already caught
-    # and re-raised as an HTTPException below (the endpoints' own
-    # try/except is the primary path - HTTPException has guaranteed,
-    # well-tested interaction with CORSMiddleware, unlike relying solely
-    # on a handler for the bare Exception class, which was observed NOT
-    # reliably producing a CORS-safe response when a provider call raised
-    # from inside FastAPI's threadpool).
+    # Belt-and-suspenders fallback for anything outside the endpoints' own
+    # try/except below (which is the primary path - it returns a
+    # JSONResponse directly instead of raising, since a *raised* exception
+    # was observed not reliably reaching the client as a valid CORS-safe
+    # response; a normal return takes the exact same code path as any
+    # ordinary 200 and can't hit that problem).
     return JSONResponse(status_code=400, content={"error": str(exc)})
 
 
@@ -168,10 +159,15 @@ def generate_walkcycle(req: WalkCycleRequest):
         }
 
         return {"image_base64": _png_b64(sheet), "metadata": metadata}
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        # Return the error response directly rather than raising - a raised
+        # exception has to propagate correctly through every middleware
+        # layer (CORS included) to become a valid response, which was
+        # observed NOT happening reliably for this exact provider-failure
+        # case (browsers saw "Failed to fetch" instead of the error body).
+        # A returned JSONResponse takes the same code path as any normal
+        # 200, sidestepping that whole class of problem.
+        return JSONResponse(status_code=400, content={"error": str(e)})
 
 
 @app.post("/api/tileset/generate")
@@ -205,10 +201,8 @@ def generate_tileset(req: TilesetRequest):
                 results.append({"variant": variant, "image_base64": None, "error": str(e)})
 
         return {"tiles": results}
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(status_code=400, content={"error": str(e)})
 
 
 @app.post("/api/save")
@@ -223,7 +217,5 @@ def save(req: SaveRequest):
                 json.dump(req.metadata, f, indent=1)
 
         return {"path": os.path.relpath(out_path, GODOT_DIR)}
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(status_code=400, content={"error": str(e)})
