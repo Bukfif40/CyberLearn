@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://byyv6sap8jcld" path="res://tilesets/walls.png" id="4_1migf"]
 [ext_resource type="Texture2D" uid="uid://dvlphak18oirm" path="res://tilesets/tops.png" id="5_4lrqb"]
 [ext_resource type="Texture2D" uid="uid://qcoa5pfgg0a3" path="res://tilesets/dockyard_tiles.png" id="6_dockyard"]
+[ext_resource type="Texture2D" path="res://tilesets/apartment_tiles.png" id="7_apartment"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xmlbm"]
 texture = ExtResource("1_mfufm")
@@ -666,6 +667,14 @@ texture_region_size = Vector2i(32, 32)
 3:0/0 = 0
 3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 4:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_apartment"]
+texture = ExtResource("7_apartment")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+2:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ijmlp"]
 texture = ExtResource("2_x2wcm")
@@ -3506,3 +3515,4 @@ sources/9 = SubResource("TileSetAtlasSource_hiqwf")
 sources/10 = SubResource("TileSetAtlasSource_eeanw")
 sources/1 = SubResource("TileSetAtlasSource_xmlbm")
 sources/20 = SubResource("TileSetAtlasSource_dockyard")
+sources/21 = SubResource("TileSetAtlasSource_apartment")
