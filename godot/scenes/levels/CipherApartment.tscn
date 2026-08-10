@@ -1,0 +1,96 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" path="res://scenes/levels/level.gd" id="1_qntce"]
+[ext_resource type="PackedScene" path="res://scenes/system/game_camera.tscn" id="2_slm64"]
+[ext_resource type="Script" path="res://scenes/system/game_camera.gd" id="3_l1ass"]
+[ext_resource type="TileSet" path="res://tilesets/tileset_01.tres" id="4_i7j6r"]
+[ext_resource type="Script" path="res://scripts/tilemap_navigation.gd" id="5_0vy5e"]
+[ext_resource type="Script" path="res://scenes/props/pc_terminal.gd" id="6_w46ca"]
+[ext_resource type="Texture2D" path="res://assets/tiles/prop_terminal2.png" id="7_btdxb"]
+[ext_resource type="PackedScene" path="res://entities/player/player_instantiator.tscn" id="8_r0ftf"]
+[ext_resource type="Script" path="res://entities/player/player_instantiator.gd" id="9_vgsgy"]
+[ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="10_d70vp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_svnal"]
+size = Vector2(28, 24)
+
+[node name="Level" type="Node2D" unique_id=1721788917]
+y_sort_enabled = true
+script = ExtResource("1_qntce")
+
+[node name="GameCamera2D" type="Camera2D" parent="." unique_id=839284001 node_paths=PackedStringArray("target_manager") instance=ExtResource("2_slm64")]
+process_mode = 3
+position = Vector2(160, 128)
+limit_left = 0
+limit_top = 0
+limit_right = 320
+limit_bottom = 256
+script = ExtResource("3_l1ass")
+target_manager = NodePath("TargetManager")
+
+[node name="Layers" type="Node2D" parent="." unique_id=997227713]
+unique_name_in_owner = true
+z_index = -1
+
+[node name="terrain" type="TileMapLayer" parent="Layers" unique_id=1693850149]
+tile_map_data = PackedByteArray("AAAAAAAAFAAAAAAAAAABAAAAFAAAAAAAAAACAAAAFAAAAAAAAAADAAAAFAAAAAAAAAAEAAAAFAAAAAAAAAAFAAAAFAAAAAAAAAAGAAAAFAAAAAAAAAAHAAAAFAAAAAAAAAAIAAAAFAAAAAAAAAAJAAAAFAAAAAAAAAAAAAEAFAAAAAAAAAABAAEAFAAAAAAAAAACAAEAFAAAAAAAAAADAAEAFAAAAAAAAAAEAAEAFAAAAAAAAAAFAAEAFAAAAAAAAAAGAAEAFAAAAAAAAAAHAAEAFAAAAAAAAAAIAAEAFAAAAAAAAAAJAAEAFAAAAAAAAAAAAAIAFAAAAAAAAAABAAIAFAAAAAAAAAACAAIAFAAAAAAAAAADAAIAFAAAAAAAAAAEAAIAFAAAAAAAAAAFAAIAFAAAAAAAAAAGAAIAFAAAAAAAAAAHAAIAFAAAAAAAAAAIAAIAFAAAAAAAAAAJAAIAFAAAAAAAAAAAAAMAFAAAAAAAAAABAAMAFAAAAAAAAAACAAMAFAAAAAAAAAADAAMAFAAAAAAAAAAEAAMAFAAAAAAAAAAFAAMAFAAAAAAAAAAGAAMAFAAAAAAAAAAHAAMAFAAAAAAAAAAIAAMAFAAAAAAAAAAJAAMAFAAAAAAAAAAAAAQAFAAAAAAAAAABAAQAFAAAAAAAAAACAAQAFAAAAAAAAAADAAQAFAAAAAAAAAAEAAQAFAAAAAAAAAAFAAQAFAAAAAAAAAAGAAQAFAAAAAAAAAAHAAQAFAAAAAAAAAAIAAQAFAAAAAAAAAAJAAQAFAAAAAAAAAAAAAUAFAAAAAAAAAABAAUAFAAAAAAAAAACAAUAFAAAAAAAAAADAAUAFAAAAAAAAAAEAAUAFAAAAAAAAAAFAAUAFAAAAAAAAAAGAAUAFAAAAAAAAAAHAAUAFAAAAAAAAAAIAAUAFAAAAAAAAAAJAAUAFAAAAAAAAAAAAAYAFAAAAAAAAAABAAYAFAAAAAAAAAACAAYAFAAAAAAAAAADAAYAFAAAAAAAAAAEAAYAFAAAAAAAAAAFAAYAFAAAAAAAAAAGAAYAFAAAAAAAAAAHAAYAFAAAAAAAAAAIAAYAFAAAAAAAAAAJAAYAFAAAAAAAAAAAAAcAFAAAAAAAAAABAAcAFAAAAAAAAAACAAcAFAAAAAAAAAADAAcAFAAAAAAAAAAEAAcAFAAAAAAAAAAFAAcAFAAAAAAAAAAGAAcAFAAAAAAAAAAHAAcAFAAAAAAAAAAIAAcAFAAAAAAAAAAJAAcAFAAAAAAAAAA=")
+tile_set = ExtResource("4_i7j6r")
+script = ExtResource("5_0vy5e")
+
+[node name="water" type="TileMapLayer" parent="Layers" unique_id=264279829]
+tile_set = ExtResource("4_i7j6r")
+
+[node name="terrain2" type="TileMapLayer" parent="Layers" unique_id=1723808564]
+tile_set = ExtResource("4_i7j6r")
+
+[node name="walls" type="TileMapLayer" parent="Layers" unique_id=606575584]
+tile_map_data = PackedByteArray("AAAAAAAAFAABAAAAAAAAAAcAFAABAAAAAAABAAAAFAABAAAAAAABAAcAFAABAAAAAAACAAAAFAABAAAAAAACAAcAFAABAAAAAAADAAAAFAABAAAAAAADAAcAFAABAAAAAAAEAAAAFAABAAAAAAAEAAcAFAABAAAAAAAFAAAAFAABAAAAAAAFAAcAFAABAAAAAAAGAAAAFAABAAAAAAAGAAcAFAABAAAAAAAHAAAAFAABAAAAAAAHAAcAFAABAAAAAAAIAAAAFAABAAAAAAAIAAcAFAABAAAAAAAJAAAAFAABAAAAAAAJAAcAFAABAAAAAAAAAAEAFAABAAAAAAAJAAEAFAABAAAAAAAAAAIAFAABAAAAAAAJAAIAFAABAAAAAAAAAAMAFAABAAAAAAAJAAMAFAABAAAAAAAAAAQAFAABAAAAAAAJAAQAFAABAAAAAAAAAAUAFAABAAAAAAAJAAUAFAABAAAAAAAAAAYAFAABAAAAAAAJAAYAFAABAAAAAAA=")
+tile_set = ExtResource("4_i7j6r")
+
+[node name="top" type="TileMapLayer" parent="Layers" unique_id=1340760381]
+z_index = 10
+tile_set = ExtResource("4_i7j6r")
+y_sort_origin = 10
+
+[node name="Props" type="Node2D" parent="." unique_id=364867604]
+y_sort_enabled = true
+
+[node name="PCTerminal" type="Area2D" parent="Props" unique_id=931429719]
+position = Vector2(160, 64)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("6_w46ca")
+
+[node name="@CollisionShape2D@2" type="CollisionShape2D" parent="Props/PCTerminal" unique_id=352867279]
+shape = SubResource("RectangleShape2D_svnal")
+
+[node name="@Sprite2D@3" type="Sprite2D" parent="Props/PCTerminal" unique_id=57612425]
+position = Vector2(0, -4)
+texture = ExtResource("7_btdxb")
+
+[node name="Prompt" type="Label" parent="Props/PCTerminal" unique_id=709044767]
+visible = false
+offset_left = -20.0
+offset_top = -34.0
+offset_right = 20.0
+offset_bottom = -18.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_constants/outline_size = 3
+text = "Press E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Entities" type="Node2D" parent="." unique_id=360439043]
+y_sort_enabled = true
+
+[node name="P1" type="Marker2D" parent="Entities" unique_id=672079003 instance=ExtResource("8_r0ftf")]
+position = Vector2(160, 160)
+script = ExtResource("9_vgsgy")
+player_scene = ExtResource("10_d70vp")
+
+[node name="Transfers" type="Node2D" parent="." unique_id=720980504]
+
+[node name="Events" type="Node2D" parent="." unique_id=1136339954]
