@@ -106,11 +106,11 @@ position = Vector2(264, 190)
 texture = ExtResource("10_vgsgy")
 
 [node name="PosterCode" type="Sprite2D" parent="Props" unique_id=1097382280]
-position = Vector2(224, 44)
+position = Vector2(240, 26)
 texture = ExtResource("11_d70vp")
 
 [node name="Window" type="Sprite2D" parent="Props" unique_id=1442100303]
-position = Vector2(120, 42)
+position = Vector2(112, 26)
 texture = ExtResource("12_svnal")
 
 [node name="Entities" type="Node2D" parent="." unique_id=360439043]
